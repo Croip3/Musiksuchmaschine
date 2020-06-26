@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import threading
 import queue
+import time
 
 
 class CrawlThread(threading.Thread):
@@ -18,19 +19,22 @@ class CrawlThread(threading.Thread):
                 self.url = q.get()
                 # queueLock.release()
                 print(f"THREAD {self.title} going for {self.url}")
+                # rval = crawler(self.url)
+                # print(rval)
                 if not crawler(self.url):
                     break
 
 
 def crawler(url):
     # print(f"URL: {url}")
+    print(len(hrefList))
     if len(hrefList) > 50: #Begrenzung, damit es nicht so lange dauert
         return False
     try: #Versucht, Verbindung zur Seite zu gelangen
         source_code = requests.get(url)
     except:
         print(f"ERROR AT CRAWLING {url}")
-        return
+        return True
     print(f"SEARCHING {url}")
     plain_text = source_code.text
     soup = BeautifulSoup(plain_text, features="html.parser")
@@ -50,6 +54,7 @@ def crawler(url):
             hrefList.append(nexturl)
         else:
             q.put(nexturl)
+    return True
         # queueLock.release()
 
 
