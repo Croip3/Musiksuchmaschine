@@ -28,7 +28,9 @@ class CrawlThread(threading.Thread):
 def crawler(url):
     # print(f"URL: {url}")
     print(len(hrefList))
-    if len(hrefList) > 50: #Begrenzung, damit es nicht so lange dauert
+    if url in hrefList:
+        return True
+    if len(hrefList) > 5000: #Begrenzung, damit es nicht so lange dauert
         return False
     try: #Versucht, Verbindung zur Seite zu gelangen
         source_code = requests.get(url)
@@ -40,22 +42,35 @@ def crawler(url):
     soup = BeautifulSoup(plain_text, features="html.parser")
     reg = re.compile(r"\.midi?$")
     items = soup.find_all("a")
-    hrefList.append(url)  # Fügt die aktuelle URL zu gecrawlt hinzu
+    # for itemo in items:
+    #     print(f"\t{itemo.get('href')}")
+      # Fügt die aktuelle URL zu gecrawlt hinzu
     for link in items:
         href = link.get('href')
-        nexturl = starturl + str(href)
-        # queueLock.acquire()
-        if nexturl in hrefList or nexturl == url or str(href) == "None":
-            continue
-        if reg.search(str(href)):
-            linkList.append(link)
-            print("\tADDED LINK:")
-            print("\t" + nexturl)
-            hrefList.append(nexturl)
+        if not re.search(r"^http", str(href)):
+            nexturl = starturl + str(href)
         else:
-            q.put(nexturl)
+            nexturl = str(href)
+        with queueLock:
+            print(hrefList)
+            if nexturl == url or str(href) == "None":
+                print(f"{nexturl} is Same Site")
+                continue
+            if nexturl in hrefList:
+                print(f"\n{nexturl} has already been crawled")
+                continue
+            print("This comes after")
+            if reg.search(str(href)):
+                linkList.append(link)
+                print("\tADDED LINK:")
+                print("\t" + nexturl)
+                hrefList.append(nexturl)
+            else:
+                print(f"{nexturl} has been put to Q!")
+                q.put(nexturl)
+    with queueLock:
+        hrefList.append(url)
     return True
-        # queueLock.release()
 
 
 queueLock = threading.Lock()
@@ -64,7 +79,7 @@ hrefList = []
 starturl = 'https://bitmidi.com'
 q = queue.Queue()
 q.put(starturl)
-threadCount = 8
+threadCount = 1
 threads = []
 for i in range(threadCount):
     t = CrawlThread("", i)
@@ -76,10 +91,11 @@ for x in threads:
 
 # crawler(starturl, 0)
 
-print("fertig")
-print(linkList)
+
+print(f"\n SEARCHED {len(hrefList)} PAGES")
 for item in hrefList:
     print(item)
+print(f"\n FOUND {len(linkList)} MIDI FILES!")
 for item in linkList:
     print(item.string)
     print(item.get('href'))
