@@ -4,6 +4,15 @@ import re
 import threading
 import queue
 import time
+import mysql.connector
+
+
+mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="3X2SDuKU8v5",
+        database="musiksuchmaschine"
+    )
 
 
 class CrawlThread(threading.Thread):
@@ -17,8 +26,27 @@ class CrawlThread(threading.Thread):
             if not q.empty():
                 self.url = q.get()
                 print(f"THREAD {self.title} going for {self.url}")
-                if not crawler(self.url):
-                    break
+                crawler(self.url)
+                global last_amount_crawled
+                global database_push_amount
+                d = len(hrefList) - last_amount_crawled
+                if d > database_push_amount:
+                    global mydb
+                    if not mydb.is_connected():
+                        mydb = mysql.connector.connect(
+                            host="localhost",
+                            user="root",
+                            password="3X2SDuKU8v5",
+                            database="musiksuchmaschine"
+                        )
+                    for k in range(last_amount_crawled, len(hrefList)):
+                        mycursor = mydb.cursor()
+                        sql = "INSERT INTO crawled_urls (id, url, timestamp) VALUES (NULL, %s, NULL)"
+                        val = (hrefList[k], )
+                        mycursor.execute(sql, val)
+                        print(mycursor.rowcount, "record inserted.")
+                    mydb.commit()
+                    last_amount_crawled = len(hrefList)
                 q.task_done()
 
 
@@ -37,6 +65,7 @@ def crawler(url):
     plain_text = source_code.text
     soup = BeautifulSoup(plain_text, features="html.parser")
     reg = re.compile(r"\.midi?$")
+    print("test")
     items = soup.find_all("a")
     for i in range(len(items)):
         link = items[i]
@@ -70,6 +99,8 @@ def crawler(url):
     return True
 
 
+last_amount_crawled = 0
+database_push_amount = 100
 queueLock = threading.Lock()
 linkList = []
 hrefList = []

@@ -4,6 +4,9 @@ import re
 import threading
 import queue
 import time
+import mysql.connector
+
+
 
 
 class CrawlThread(threading.Thread):
@@ -30,12 +33,14 @@ def crawler(url):
     # print(f"URL: {url}")
     # if url in hrefList:
     #     return True
-    if len(hrefList) > 50: #Begrenzung, damit es nicht so lange dauert
+    if "@" in url:
+        return True
+    if len(linkList) > 1000: #Begrenzung, damit es nicht so lange dauert
         return False
     try: #Versucht, Verbindung zur Seite zu gelangen
         source_code = requests.get(url)
     except:
-        # print(f"ERROR AT CRAWLING {url}")
+        print(f"ERROR AT CRAWLING {url}")
         return True
     # print(f"SEARCHING {url}")
     plain_text = source_code.text
@@ -44,13 +49,18 @@ def crawler(url):
     items = soup.find_all("a")
     for i in range(len(items)):
         link = items[i]
-        href = link.get('href')
-        if not re.search(r"^http", str(href)):
-            nexturl = starturl + str(href)
+        href = str(link.get('href'))
+        # print(f"\t{href}")
+        if len(href) == 0 or "@" in href:
+            continue
+        if not re.search(r"^http", href):
+            if href[0] != '/':
+                href = '/' + href
+            nexturl = url + href
         else:
-            nexturl = str(href)
+            nexturl = href
         with queueLock:
-            if nexturl == url or str(href) == "None":
+            if nexturl == url or href == "None":
                 continue
             if nexturl in hrefList:
                 continue
@@ -79,9 +89,11 @@ queueLock = threading.Lock()
 for k in range(32):
     linkList = []
     hrefList = []
-    starturl = 'https://bitmidi.com'
     q = queue.Queue()
-    q.put(starturl)
+    # starturl = ['https://bitmidi.com']
+    starturl = ['https://bitmidi.com', 'http://www.telewerkstatt.at', 'https://www.mfiles.co.uk/midi-files.htm']
+    for s in starturl:
+        q.put(s)
     threadCount = k + 1
     threads = []
     start = time.time()
@@ -89,14 +101,14 @@ for k in range(32):
         t = CrawlThread("", i)
         threads.append(t)
         t.start()
-
     for x in threads:
         x.join()
     end = time.time()
-    print('\nUSED ' + str(k + 1) + ' THREADS: NEEDED ' + str(end - start) + ' seconds')
-    print('SEARCHED ' + str(len(hrefList)) + ' PAGES')
-    print('FOUND ' + str(len(linkList)) + ' MIDI FILES!')
-    print('SIZE OF REMAINING QUEUE: ' + str(q.qsize()) + '')
+    print(f"\n USED {k + 1} THREADS: NEEDED {end - start} seconds")
+    print(f"SEARCHED {len(hrefList)} PAGES")
+    print(f"{len(hrefList)/(end-start)} PAGES PER SECOND")
+    print(f"FOUND {len(linkList)} MIDI FILES")
+    print(f"SIZE OF REMAINING QUEUE {q.qsize()}\n")
 
 # crawler(starturl, 0)
 
