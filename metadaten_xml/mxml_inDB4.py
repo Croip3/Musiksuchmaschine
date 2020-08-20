@@ -14,7 +14,17 @@ mydb = mysql.connector.connect(
     )
 #öffnet xml oder mxml und wandelt es in einen music21 Stream
 
-files=["1Nh_ZöllnerKH_Psalm121.mxl"]
+files=["1Certon-A_ce_matin.mxl",
+"1Chap-fear.mxl",
+"1Compere-Va-t-en,_regret.mxl",
+"1Fair,_if_you_expect_admiring.mxl",
+"1Farewell,_my_joy.mxl",
+"1Farewell_disdainful_Morley.mxl",
+"1Fear_no_more_MacFarren.mxl",
+"1Fr.Caccini-E_tra_i_pomi.mxl",
+"1Giovannelli-Va_canzonetta_humile.mxl",
+"1Marenzio-La_farfalla.mxl",
+"1Nh_ZöllnerKH_Psalm121.mxl",]
 
 
 for file in files:
