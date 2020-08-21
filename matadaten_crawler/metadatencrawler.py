@@ -1,3 +1,5 @@
+#funktioniert mit Links, wo die Datei richtig vorhanden ist 
+#funktioniert noch nicht bei Datein, wo die Dateiendung falsch angegeben ist 
 import requests
 import re
 from pathlib import Path
