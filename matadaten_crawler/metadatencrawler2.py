@@ -5,11 +5,11 @@ import mysql.connector
 from music21 import *
 from mido import MidiFile
 import magic
+# zur Installation von magic siehe hier: https://pypi.org/project/python-magic/
 from xml.etree import ElementTree as ET
 import time
 start = time.time()
 
-# zur Installation von magic siehe hier: https://pypi.org/project/python-magic/
 mydb = mysql.connector.connect(
     host="localhost",
     user="MusikDBNutzer",
