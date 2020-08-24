@@ -5,11 +5,12 @@ import mysql.connector
 from music21 import *
 from mido import MidiFile
 import magic
-# zur Installation von magic siehe hier: https://pypi.org/project/python-magic/
 from xml.etree import ElementTree as ET
 import time
+
 start = time.time()
 
+# zur Installation von magic siehe hier: https://pypi.org/project/python-magic/
 mydb = mysql.connector.connect(
     host="localhost",
     user="MusikDBNutzer",
@@ -17,7 +18,7 @@ mydb = mysql.connector.connect(
     database="musiksuchmaschine"
 )
 
-#bildet eine Liste mit allen Künstlern und ihren IDs
+# bildet eine Liste mit allen Künstlern und ihren IDs
 mycursor = mydb.cursor()
 sql = "SELECT * FROM kuenstler"
 mycursor.execute(sql, )
@@ -31,7 +32,7 @@ mycursor.execute(sql, )
 musikstuecktList = mycursor.fetchall()
 musikstuecktList = str(musikstuecktList)
 
-url = 'https://www.mididb.com/midi-download/AUD_ST6355.mid'
+url = 'http://www1.cpdl.org/wiki/images/a/a5/Farewell%2C_my_joy.mxl'
 # MXL BEISPIEL http://www1.cpdl.org/wiki/images/a/a5/Farewell%2C_my_joy.mxl
 # xml BEISPIEL https://hymnary.org/media/fetch/100034
 # midi Beispiel https://www.midiworld.com/download/3972
@@ -51,12 +52,13 @@ else:
 open(file_name, 'wb').write(r.content)
 
 if file_ext == 'xml' or file_ext == '.xml' or file_ext == '.mxl' or file_ext == 'mxl':
-    et = ET.parse(file_name)
-    root = et.getroot()
-    root = root.tag
-    if root != 'score-partwise':
-        print('Dieses XML ist kein musicXML')
-        exit()
+    if file_ext == 'xml' or file_ext == '.xml':
+        et = ET.parse(file_name)
+        root = et.getroot()
+        root = root.tag
+        if root != 'score-partwise':
+            print('Dieses XML ist kein musicXML')
+            exit()
     score = converter.parse(file_name)
     varTitle = score.metadata.title
     varArtist = score.metadata.composer
