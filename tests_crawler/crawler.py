@@ -8,13 +8,10 @@ import mysql.connector
 import urllib.parse
 
 from pathlib import Path
-import pathlib
 from music21 import *
 from mido import MidiFile
 import magic
 from xml.etree import ElementTree as ET
-
-
 
 
 dbconfig = { "host": "localhost",
@@ -118,9 +115,6 @@ class Kuenstler():
         return True
 
 
-
-
-
 class Musikstueck():
     def __init__(self, url):
         self.url = url
@@ -144,7 +138,6 @@ class Musikstueck():
     def get_str(self):
         return "NULL", self.tempo, self.genre, self.uploaddate, self.length, self.year, self.key, self.epoche, self.title, self.url, self.artist.id, self.misc
 
-    @property
     def find_metadata(self):
         global artistList
         r = requests.get(self.url, allow_redirects=True)
@@ -168,19 +161,8 @@ class Musikstueck():
                 root = root.tag
                 if root != 'score-partwise':
                     print("Kein Music XML!")
-                    rem_file = pathlib.Path(file_name)
-                    rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
                     return False
             score = converter.parse(file_name)
-            #var_tempo = ???
-            #var_genre = ???
-            #var_uploaddatum = ???
-            #var_length = ???
-            #var_year = ???
-            var_key = score.analyze('key')
-            var_key = str(var_key)
-            #var_epoche = ???
-            #var_url = ???
             var_title = score.metadata.title
             var_artist = Kuenstler(0, score.metadata.composer)
             var_misc = score.metadata.all()
@@ -209,10 +191,7 @@ class Musikstueck():
 
             self.artist = var_artist
             self.title = var_title
-            self.key = var_key
             self.misc = var_misc
-            rem_file = pathlib.Path(file_name)
-            rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
 
                 # wie regeln wir es, dass Künstler nicht doppelt eingetragen werden?
@@ -224,52 +203,45 @@ class Musikstueck():
             var_misc = []
             var_data = ""
             var_title = ""
-            var_artist = Kuenstler(0, "unbekannnt")
+            var_artist = Kuenstler(0, "unbekannt")
             var_tempo = ""
             var_key = ""
             var_url = ""
-            midi_data = [] #leere Liste für Midi Daten
+
             for track in mid.tracks:
-                midi_data.append(track)
                 for msg in mid.tracks[0]:
-                    midi_data.append(msg)
+                    msg = str(msg)
+                    x = re.search("<meta message.*time=0>", msg)
+                    remove_characters = ["<", ">", "meta message", "time=0", "'"]
+                    if x:
+                        a_string = str(x.string)
+                        for character in remove_characters:
+                            a_string = a_string.replace(character, "")
+                        if "track_name" in msg:
+                            var_title = a_string.replace("track_name name=", "")
+                        if "key_signature" in msg:
+                            var_key = a_string.replace("key_signature key=", "")
+                        if "set_tempo" in msg:
+                            var_tempo = a_string.replace("set_tempo tempo=", "")
+                            var_tempo = int(var_tempo)
+                            var_tempo = round(60000000 / var_tempo, 0)
+                        else:
+                            var_misc.append(a_string)
+                            miscstr = ",".join(var_misc)
+                    else:
+                        pass
 
-            midi_data = str(midi_data)
-            if "track_name" in midi_data:
-                var_title = re.search(r"track_name name=(.*?)time=0", midi_data).group(1)
-            if "key_signature" in midi_data:
-                var_key = re.search(r"key_signature key=(.*?)time=0", midi_data).group(1)
-            if "set_tempo" in midi_data:
-                var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
-                var_tempo = int(var_tempo)
-                var_tempo = round(60000000 / var_tempo, 0)
-            if "By " in midi_data:
-                var_artist = re.search(r"By (.*?)time=0", midi_data).group(1)
-                var_artist = Kuenstler(0, var_artist)
                 if var_artist.find_artist_id():
                     artistList.append(var_artist)
-            if "by " in midi_data:
-                var_artist = re.search(r"by (.*?)time=0", midi_data).group(1)
-                var_artist = Kuenstler(0, var_artist)
-                if var_artist.find_artist_id():
-                    artistList.append(var_artist)
-            var_misc.append(midi_data)
-            miscstr = ",".join(var_misc)
-
-
 
             self.artist = var_artist
             self.title = var_title
             self.misc = miscstr
             self.tempo = var_tempo
             self.key = var_key
-            rem_file = pathlib.Path(file_name)
-            rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
             # print(mycursor.rowcount, "record inserted.")
         else:
-            rem_file = pathlib.Path(file_name)
-            rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             pass
         return False
 
@@ -340,7 +312,7 @@ def crawler(url):
                 # HIER KOMMT DER METADATA CODE
                 new_music = Musikstueck(nexturl.url)
                 print(f"FOUND FILE {nexturl.url}")
-                if new_music.find_metadata:
+                if new_music.find_metadata():
                     linkList.append(new_music)
                     hrefList.append(nexturl)
                     print(linkList)
@@ -379,8 +351,6 @@ def startup():
     for entry in result:
         artistList.append(Kuenstler(entry[0], entry[1]))
     last_amount_artist = len(artistList)
-
-
 
 
 # Variablen, die bestimmen, wann in die Datenbank gepusht wird
