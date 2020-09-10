@@ -1,10 +1,14 @@
-article {
+body {
     text-align: center;
 }
 
 h1 {
     margin: auto;
     font-size: 10em;
+}
+
+p {
+    margin: 0;
 }
 
 #searchbar {
@@ -17,12 +21,18 @@ h1 {
     margin: auto;
 }
 
+.searchfilter {
+    width: 50%;
+    margin: auto;
+    margin-top: 2em;
+}
+
 #glass {
     width: 1.5em;
 }
 
 #search, #search:focus {
-    border:none;
+    border: none;
     outline: none;
     width: 100%;
     padding-left: 1em;
@@ -31,10 +41,7 @@ h1 {
 .grid-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-areas:
-    "Titel Artist Genre"
-    "Jahr Epoche Tonart"
-    "Tempo Länge Datum";
+    grid-template-areas: "Titel Artist Genre" "Jahr Epoche Tonart" "Tempo Länge Datum";
 }
 
 .grid-container div {
@@ -76,27 +83,4 @@ h1 {
 
 .date {
     grid-area: Datum;
-}
-
-.dropbtn {
-    cursor: pointer;
-}
-
-.dropbtn:hover, .dropbtn:focus {
-    background-color: #2980B9;
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-}
-
-.show {
-    display: block;
 }
