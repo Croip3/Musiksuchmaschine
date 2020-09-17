@@ -6,6 +6,7 @@ import queue
 import time
 import mysql.connector
 import urllib.parse
+import datetime
 
 from pathlib import Path
 import pathlib
@@ -172,10 +173,20 @@ class Musikstueck():
                     rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
                     return False
             score = converter.parse(file_name)
-            #var_tempo = ???
+            var_tempo = score.metronomeMarkBoundaries(srcObj=None) #sucht BPM für Viertel heraus (also normale BPM)
+            var_tempo = str(var_tempo)
+            var_tempo = re.search(r"<music21.tempo.MetronomeMark(.*?)>", var_tempo).group(1)
+            #es gibt die Möglichkeite, dass Leute hier statt BPM auf Viertel dass auch in halben oder so etwas angeben
+            #also entweder alles immer in quarter umwandeln (besser) oder verschiedene Varianten für Tempo schaffen
+            var_tempo = re.sub("[a-zA-Z, =]+", "", var_tempo) #entfernt alles, außer der Nummer
+            # richtige Rechnung: BPM:60s = Ergebnis danach Duration : Ergebnis und abschließend Runden
+            var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
+            BPS = float(var_tempo) / 60 #BPS = Beats Per Second
+            var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
+            var_length = str(datetime.timedelta(seconds=var_length)) #wandelt Sekunden des Strings in Zeitangabe
+            var_length = str(var_length)
             #var_genre = ???
             #var_uploaddatum = ???
-            #var_length = ???
             #var_year = ???
             var_key = score.analyze('key')
             var_key = str(var_key)
@@ -185,6 +196,7 @@ class Musikstueck():
             var_artist = Kuenstler(0, score.metadata.composer)
             var_misc = score.metadata.all()
             var_misc = str(var_misc)
+            var_misc = re.sub("[^0-9a-zA-Z]+", " ", var_misc)
             # das Stream Objekt verfügt über Metadaten print nur für den fall von fehlern als kontrolle
             # https://web.mit.edu/music21/doc/moduleReference/moduleMetadata.html?#module-music21.metadata
             # print(score.metadata.title)
@@ -207,10 +219,12 @@ class Musikstueck():
             if var_artist.find_artist_id():
                 artistList.append(var_artist)
 
+            self.tempo = var_tempo
             self.artist = var_artist
             self.title = var_title
             self.key = var_key
             self.misc = var_misc
+            self.length = var_length
             rem_file = pathlib.Path(file_name)
             rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
@@ -221,6 +235,11 @@ class Musikstueck():
             pass
         if file_ext == '.mid' or file_ext == 'midi':
             mid = MidiFile(file_name, clip=True)
+            var_length = mid.length
+            var_length = round(var_length)
+            var_length = str(datetime.timedelta(seconds=var_length))
+            #sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
+            #die logischerweise auch keine Gesamtspielzeit haben
             var_misc = []
             var_data = ""
             var_title = ""
@@ -255,6 +274,7 @@ class Musikstueck():
                     artistList.append(var_artist)
             var_misc.append(midi_data)
             miscstr = ",".join(var_misc)
+            miscstr = re.sub("[^0-9a-zA-Z]+", " ", miscstr)
 
 
 
@@ -263,6 +283,7 @@ class Musikstueck():
             self.misc = miscstr
             self.tempo = var_tempo
             self.key = var_key
+            self.length = var_length
             rem_file = pathlib.Path(file_name)
             rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
@@ -393,7 +414,7 @@ queueLock = threading.Lock()
 linkList = []
 hrefList = []
 artistList = []
-starturl = 'https://bitmidi.com/'
+starturl = 'http://sing-kikk.de/'
 q = queue.Queue()
 startup()
 
