@@ -183,6 +183,7 @@ class Musikstueck():
             var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
             BPS = float(var_tempo) / 60 #BPS = Beats Per Second
             var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
+            var_length = round(var_length / BPS)
             var_length = str(datetime.timedelta(seconds=var_length)) #wandelt Sekunden des Strings in Zeitangabe
             var_length = str(var_length)
             #var_genre = ???
