@@ -176,10 +176,13 @@ class Musikstueck():
             var_tempo = score.metronomeMarkBoundaries(srcObj=None) #sucht BPM für Viertel heraus (also normale BPM)
             var_tempo = str(var_tempo)
             var_tempo = re.search(r"<music21.tempo.MetronomeMark(.*?)>", var_tempo).group(1)
+            #es gibt die Möglichkeite, dass Leute hier statt BPM auf Viertel dass auch in halben oder so etwas angeben
+            #also entweder alles immer in quarter umwandeln (besser) oder verschiedene Varianten für Tempo schaffen
             var_tempo = re.sub("[a-zA-Z, =]+", "", var_tempo) #entfernt alles, außer der Nummer
             # richtige Rechnung: BPM:60s = Ergebnis danach Duration : Ergebnis und abschließend Runden
             var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
             BPS = float(var_tempo) / 60 #BPS = Beats Per Second
+            var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
             var_length = round(var_length / BPS)
             var_length = str(datetime.timedelta(seconds=var_length)) #wandelt Sekunden des Strings in Zeitangabe
             var_length = str(var_length)
@@ -194,6 +197,7 @@ class Musikstueck():
             var_artist = Kuenstler(0, score.metadata.composer)
             var_misc = score.metadata.all()
             var_misc = str(var_misc)
+            var_misc = re.sub("[^0-9a-zA-Z]+", " ", var_misc)
             # das Stream Objekt verfügt über Metadaten print nur für den fall von fehlern als kontrolle
             # https://web.mit.edu/music21/doc/moduleReference/moduleMetadata.html?#module-music21.metadata
             # print(score.metadata.title)
@@ -271,6 +275,7 @@ class Musikstueck():
                     artistList.append(var_artist)
             var_misc.append(midi_data)
             miscstr = ",".join(var_misc)
+            miscstr = re.sub("[^0-9a-zA-Z]+", " ", miscstr)
 
 
 
