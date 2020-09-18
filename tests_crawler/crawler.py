@@ -175,15 +175,17 @@ class Musikstueck():
             score = converter.parse(file_name)
             var_tempo = score.metronomeMarkBoundaries(srcObj=None) #sucht BPM für Viertel heraus (also normale BPM)
             var_tempo = str(var_tempo)
-            var_tempo = re.search(r"<music21.tempo.MetronomeMark(.*?)>", var_tempo).group(1)
-            #es gibt die Möglichkeite, dass Leute hier statt BPM auf Viertel dass auch in halben oder so etwas angeben
-            #also entweder alles immer in quarter umwandeln (besser) oder verschiedene Varianten für Tempo schaffen
-            var_tempo = re.sub("[a-zA-Z, =]+", "", var_tempo) #entfernt alles, außer der Nummer
-            # richtige Rechnung: BPM:60s = Ergebnis danach Duration : Ergebnis und abschließend Runden
+            beat = re.sub("[^a-zA-Z]+", " ", var_tempo) #entfertn alle Sonderzeichen und Zahlen aus String mit Tempoangabe
+            first, *middle, beat = beat.split() #ordnet beat letztes Wort zu, die Tempoangabe (z.B. half, full etc.)
+            beat = beat.lower() #macht aus beat String einen lowercase, weil nur diese in music21 funktionieren
+            var_tempo = re.search(r"<music21.tempo.MetronomeMark(.*?)>", var_tempo).group(1) #durchsucht String nach Tempo (Zahl)
+            var_tempo = re.sub("[a-zA-Z, =]+", "", var_tempo) #wirft alle Buchstaben raus
+            var_tempo = tempo.MetronomeMark(number=float(var_tempo), referent=beat) #es wird ein Tempoobjekt (var_tempo geschaffen, welches
+            #die herausgesuchte BPM erhält und als referent den oben herausgefundenen beat
+            var_tempo = var_tempo.getQuarterBPM() #rechnet BPM des Tempo Objekts auf Viertel um
             var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
             BPS = float(var_tempo) / 60 #BPS = Beats Per Second
             var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
-            var_length = round(var_length / BPS)
             var_length = str(datetime.timedelta(seconds=var_length)) #wandelt Sekunden des Strings in Zeitangabe
             var_length = str(var_length)
             #var_genre = ???
@@ -435,7 +437,3 @@ end = time.time()
 print(f"\nFOUND {len(linkList)} MIDI FILES IN {end-start} seconds\nFOLLOWING MIDI FILES WERE FOUND")
 for x in linkList:
     print(x)
-
-
-
-
