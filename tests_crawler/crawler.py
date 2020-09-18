@@ -437,7 +437,3 @@ end = time.time()
 print(f"\nFOUND {len(linkList)} MIDI FILES IN {end-start} seconds\nFOLLOWING MIDI FILES WERE FOUND")
 for x in linkList:
     print(x)
-
-
-
-
