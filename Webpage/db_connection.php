@@ -8,7 +8,7 @@
         protected $db;
 
         public function __construct() {
-            $ip = "141.57.21.72:3306";
+            $ip = "localhost:3306";
             $username = "root";
             $password = "3X2SDuKU8v5";
             $db = "musiksuchmaschine";
@@ -31,5 +31,5 @@
         }
     }
 
-    
+    $conn = new DatabaseConnection();    
 ?>
