@@ -200,6 +200,16 @@ class Musikstueck():
             var_misc = score.metadata.all()
             var_misc = str(var_misc)
             var_misc = re.sub("[^0-9a-zA-Z]+", " ", var_misc)
+            var_instruments = []
+            instruments = score
+            for instrument in instruments:
+                instrument = str(instrument)
+                instrument = re.search(r"<music21.stream.Part (.*?)>", instrument)
+                if instrument is not None:
+                    var_instruments.append(instrument.group(1))
+            var_instruments = str(var_instruments)
+            var_instruments = re.sub("[^0-9a-zA-ZÀ-ÖØ-öø-ÿ+öÖäÄüÜ]+", " ", var_instruments)
+            # var_instruments enthält nun alle Instrumente
             # das Stream Objekt verfügt über Metadaten print nur für den fall von fehlern als kontrolle
             # https://web.mit.edu/music21/doc/moduleReference/moduleMetadata.html?#module-music21.metadata
             # print(score.metadata.title)
@@ -278,7 +288,15 @@ class Musikstueck():
             var_misc.append(midi_data)
             miscstr = ",".join(var_misc)
             miscstr = re.sub("[^0-9a-zA-Z]+", " ", miscstr)
-
+            var_instruments = []
+            for instrument in midi_data:
+                instrument = str(instrument)
+                instrument = re.search(r"<midi track '(.*?)'", instrument)
+                if instrument is not None:
+                    var_instruments.append(instrument.group(1))
+            var_instruments = str(var_instruments)
+            var_instruments = re.sub("[^0-9a-zA-ZÀ-ÖØ-öø-ÿ+öÖäÄüÜ]+", " ", var_instruments)
+            #var_instruments enthält Instrumente
 
 
             self.artist = var_artist
