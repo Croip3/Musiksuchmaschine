@@ -45,7 +45,8 @@ class CrawlThread(threading.Thread):
                 global last_amount_crawled
                 global last_amount_links
                 global database_push_amount
-                global  last_amount_artist
+                global last_amount_artist
+                global last_amount_instruments
                 print(f"THREAD {self.title} going for {self.url}")
                 with queueLock:
                     d = len(hrefList) - last_amount_crawled
@@ -61,6 +62,7 @@ class CrawlThread(threading.Thread):
                                 password=dbconfig["password"],
                                 database=dbconfig["database"],
                             )
+                        # BISHER GECRAWLTE URLs
                         records = []
                         for k in range(last_amount_crawled, len(hrefList)):
                             records.append(hrefList[k].get_str())
@@ -69,13 +71,33 @@ class CrawlThread(threading.Thread):
                         mycursor.executemany(sql, records)
                         print(mycursor.rowcount, "record inserted.")
 
+                        # INSTRUMENTE
                         records = []
+                        for k in range(last_amount_instruments, len(instrumentList)):
+                            records.append(instrumentList[k].get_str())
+                        print(records)
+                        mycursor2 = mydb.cursor()
+                        sql2 = "INSERT INTO instrument VALUES (%s, %s)"
+                        mycursor2.executemany(sql2, records)
+
+                        # ALLE GEFUNDENEN MUSIKSTÜCKE
+                        records = []
+                        cross_records = []
                         for k in range(last_amount_links, len(linkList)):
+                            for instr in linkList[k].instruments:
+                                print(f"CROSS: {linkList[k].id} {instr.id} {instr.amount}")
+                                cross_records.append((linkList[k].id, instr.id, instr.amount,))
                             records.append(linkList[k].get_str())
                         mycursor2 = mydb.cursor()
                         sql2 = "INSERT INTO musikstueck VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                         mycursor2.executemany(sql2, records)
 
+                        # BEINHALTET
+                        mycursor = mydb.cursor()
+                        sql = "INSERT INTO beinhaltet VALUES (%s, %s, %s)"
+                        mycursor.executemany(sql, cross_records)
+
+                        # KUENSTLER
                         records = []
                         for k in range(last_amount_artist, len(artistList)):
                             records.append(artistList[k].get_str())
@@ -83,11 +105,16 @@ class CrawlThread(threading.Thread):
                         sql2 = "INSERT INTO kuenstler VALUES (%s, %s)"
                         mycursor2.executemany(sql2, records)
 
+
+
+
+
                         mydb.commit()
 
                         last_amount_crawled = len(hrefList)
                         last_amount_links = len(linkList)
                         last_amount_artist = len(artistList)
+                        last_amount_instruments = len(instrumentList)
                 q.task_done()
 
 
@@ -119,11 +146,44 @@ class Kuenstler():
         return True
 
 
+class Instrument:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self.amount = 1
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def get_str(self):
+        return self.id, self.name
+
+    def inc_amount(self):
+        self.amount = self.amount + 1
+
+    def set_id(self, id):
+        self.id = id
+
+    def find_instrument_id(self):
+        global instrumentList
+        for instr in instrumentList:
+            if self == instr:
+                self.name = instr.name
+                self.id = instr.id
+                return False
+        if len(instrumentList) != 0:
+            self.id = instrumentList[len(instrumentList) - 1].id + 1
+        else:
+            self.id = 1
+        return True
+
+
 
 
 
 class Musikstueck():
     def __init__(self, url):
+        self.id = self.get_id()
         self.url = url
         self.artist = None
         self.title = ""
@@ -135,6 +195,13 @@ class Musikstueck():
         self.length = 0
         self.year = None
         self.key = ""
+        self.instruments = []
+
+    def get_id(self):
+        global linkList
+        if len(linkList) == 0:
+            return 0
+        return linkList[len(linkList) - 1].id + 1
 
     def __str__(self):
         return f"(url:{self.url}, artist:{self.artist}, title:{self.title}, misc:{self.misc})"
@@ -164,7 +231,13 @@ class Musikstueck():
 
         if file_ext == 'xml' or file_ext == '.xml' or file_ext == '.mxl' or file_ext == 'mxl':
             if file_ext == 'xml' or file_ext == '.xml':
-                et = ET.parse(file_name)
+                try:
+                    et = ET.parse(file_name)
+                except:
+                    print("Fehler bei ET.Parse!")
+                    return False
+                else:
+                    pass
                 root = et.getroot()
                 root = root.tag
                 if root != 'score-partwise':
@@ -172,6 +245,7 @@ class Musikstueck():
                     rem_file = pathlib.Path(file_name)
                     rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
                     return False
+            # ERROR BREAK! ERROR LOG!
             score = converter.parse(file_name)
             var_tempo = score.metronomeMarkBoundaries(srcObj=None) #sucht BPM für Viertel heraus (also normale BPM)
             var_tempo = str(var_tempo)
@@ -200,6 +274,22 @@ class Musikstueck():
             var_misc = score.metadata.all()
             var_misc = str(var_misc)
             var_misc = re.sub("[^0-9a-zA-Z]+", " ", var_misc)
+            var_instruments = []
+            instruments = score.flat.getElementsByClass('Instrument')
+            for instr in instruments:
+                if instr.instrumentName is not None:
+                    currInstrument = Instrument(0, instr.instrumentName)
+                    if currInstrument.find_instrument_id():
+                        instrumentList.append(currInstrument)
+                    for x in self.instruments:
+                        if x == currInstrument:
+                            x.inc_amount()
+                            break
+                    else:
+                        self.instruments.append(currInstrument)
+
+
+            # var_instruments enthält nun alle Instrumente
             # das Stream Objekt verfügt über Metadaten print nur für den fall von fehlern als kontrolle
             # https://web.mit.edu/music21/doc/moduleReference/moduleMetadata.html?#module-music21.metadata
             # print(score.metadata.title)
@@ -278,7 +368,15 @@ class Musikstueck():
             var_misc.append(midi_data)
             miscstr = ",".join(var_misc)
             miscstr = re.sub("[^0-9a-zA-Z]+", " ", miscstr)
-
+            var_instruments = []
+            for instr in midi_data:
+                instr = str(instr)
+                instr = re.search(r"<midi track '(.*?)'", instr)
+                if instr is not None:
+                    var_instruments.append(instr.group(1))
+            var_instruments = str(var_instruments)
+            var_instruments = re.sub("[^0-9a-zA-ZÀ-ÖØ-öø-ÿ+öÖäÄüÜ]+", " ", var_instruments)
+            #var_instruments enthält Instrumente
 
 
             self.artist = var_artist
@@ -328,8 +426,6 @@ def crawler(url):
     # print(f"URL: {url}")
     # if url in hrefList:
     #     return True
-    if len(hrefList) > 1000: #Begrenzung, damit es nicht so lange dauert
-        return False
     try: #Versucht, Verbindung zur Seite zu gelangen
         source_code = requests.get(url)
     except:
@@ -367,7 +463,6 @@ def crawler(url):
                 if new_music.find_metadata:
                     linkList.append(new_music)
                     hrefList.append(nexturl)
-                    print(linkList)
             else:
                 hrefList.append(nexturl)
                 q.put(nexturl.url)
@@ -382,6 +477,8 @@ def startup():
     result = cursor.fetchall()
     global last_amount_crawled
     global last_amount_artist
+    global last_amount_links
+    global last_amount_instruments
     global q
     if cursor.rowcount > 0:
         for entry in result:
@@ -404,6 +501,13 @@ def startup():
         artistList.append(Kuenstler(entry[0], entry[1]))
     last_amount_artist = len(artistList)
 
+    cursor = mydb.cursor()
+    cursor.execute("SELECT id, name FROM instrument")
+    result = cursor.fetchall()
+    for entry in result:
+        instrumentList.append(Instrument(entry[0], entry[1]))
+    last_amount_instruments = len(instrumentList)
+
 
 
 
@@ -411,12 +515,14 @@ def startup():
 last_amount_crawled = 0
 last_amount_links = 0
 last_amount_artist = 0
+last_amount_instruments = 0
 database_push_amount = 100
 
 queueLock = threading.Lock()
 linkList = []
 hrefList = []
 artistList = []
+instrumentList = []
 starturl = 'http://sing-kikk.de/'
 q = queue.Queue()
 startup()
