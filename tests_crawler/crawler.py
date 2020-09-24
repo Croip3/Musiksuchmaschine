@@ -20,8 +20,8 @@ from xml.etree import ElementTree as ET
 
 dbconfig = { "host": "localhost",
         "user": "root",
-        # password:"3X2SDuKU8v5",
-        "password": "",
+        "password" : "3X2SDuKU8v5",
+        # "password": "",
         "database": "musiksuchmaschine"}
 mydb = mysql.connector.connect(
         host = dbconfig["host"],
@@ -66,7 +66,7 @@ class CrawlThread(threading.Thread):
                         for k in range(last_amount_crawled, len(hrefList)):
                             records.append(hrefList[k].get_str())
                         mycursor = mydb.cursor()
-                        sql = "INSERT INTO crawled_urls VALUES (%s, %s, %s, %s, %s)"
+                        sql = "INSERT INTO crawled_urls (url, last, ParentId) VALUES (%s, %s, %s)"
                         mycursor.executemany(sql, records)
 
                         # INSTRUMENTE
@@ -85,7 +85,7 @@ class CrawlThread(threading.Thread):
                                 cross_records.append((linkList[k].id, instr.id, instr.amount,))
                             records.append(linkList[k].get_str())
                         mycursor2 = mydb.cursor()
-                        sql2 = "INSERT INTO musikstueck VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                        sql2 = "INSERT INTO musikstueck (Tempo, Genre, Uploaddatum, Laenge, Jahr, Tonart, Epoche, Titel, Url, Kuenstler_ID, Sonstiges) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                         mycursor2.executemany(sql2, records)
                         print(f"{mycursor2.rowcount} new music files pushed!")
 
@@ -107,7 +107,7 @@ class CrawlThread(threading.Thread):
                         for k in range(0, len(errors)):
                             records.append(errors[k].get_str())
                         mycursor2 = mydb.cursor()
-                        sql2 = "INSERT INTO error VALUES (%s, %s, %s, %s)"
+                        sql2 = "INSERT INTO error (zeit, nachricht, url) VALUES (%s, %s, %s)"
                         mycursor2.executemany(sql2, records)
                         errors.clear()
 
@@ -189,7 +189,7 @@ class Error:
         self.file = file
 
     def get_str(self):
-        return 'NULL', self.timestamp, self.msg, str(self.file)
+        return self.timestamp, self.msg, str(self.file)
 
 
 class Musikstueck():
@@ -221,7 +221,7 @@ class Musikstueck():
         return self.__str__()
 
     def get_str(self):
-        return "NULL", self.tempo, self.genre, self.uploaddate, self.length, self.year, self.key, self.epoche, self.title, self.url, self.artist.id, self.misc
+        return self.tempo, self.genre, self.uploaddate, self.length, self.year, self.key, self.epoche, self.title, self.url, self.artist.id, self.misc
 
     @property
     def find_metadata(self):
@@ -376,7 +376,7 @@ class Musikstueck():
             var_data = ""
             var_title = ""
             var_artist = Kuenstler(0, "unbekannnt")
-            var_tempo = ""
+            var_tempo = 0
             var_key = score.analyze('key')
             var_key = str(var_key)
             var_url = ""
@@ -409,7 +409,7 @@ class Musikstueck():
                 #var_tempo = tempo_midi_data[0].tempo
             #if "set_tempo" in midi_data:
                 #var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
-            if var_tempo != "":
+            if var_tempo != 0:
                 var_tempo = int(var_tempo)
                 var_tempo = round(60000000 / var_tempo, 0)
             #midi_data = []
@@ -496,7 +496,7 @@ class Url():
         return self.url == item.url
 
     def get_str(self):
-        return "NULL", self.url, self.last, self.parent, "NULL"
+        return self.url, self.last, self.parent
 
     def set_url(self, url):
         self.url = url
