@@ -325,16 +325,29 @@ class Musikstueck():
         else:
             pass
         if file_ext == '.mid' or file_ext == 'midi':
-            mid = MidiFile(file_name, clip=True)
-            score = converter.parse(file_name)
+            try:
+                mid = MidiFile(file_name, clip=True)
+            except:
+                print("Midi nicht lesbar!")
+                return False
+            else:
+                pass
+            try:
+                score = converter.parse(file_name)
+            except:
+                print("Midi nicht lesbar!")
+                return False
+            else:
+                pass
             # ERROR BREAK! ERROR LOG!
             try:
                 var_length = mid.length
+                var_length = round(var_length)
             except:
                 print(f"Error at {file_name}")
             else:
                 pass
-            var_length = round(var_length)
+            var_length = ""
             #var_length = str(datetime.timedelta(seconds=var_length))
             #sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
             #die logischerweise auch keine Gesamtspielzeit haben
@@ -352,65 +365,66 @@ class Musikstueck():
                     mid.tracks):  # wenn es richtig benannte Instrumenten Tracks gibt, werden sie hier gesammelt
                 # print('Track {}: {}'.format(i, track.name))
                 for msg in track:
-                    if msg.type == 'track_name' or msg.type == 'text' or msg.type == 'marker':
-                        print(msg)
+                    if msg.type == 'track_name':
+                        #print(msg)
                         meta_messages.append((msg))
-            try:
-                var_title = meta_messages[0].text
-            except AttributeError:
-                print('Attribut existiert nicht')
-            except IndexError:
-                print('Listeneintrag existiert nicht')
-            try:
-                var_artist = meta_messages[1].text
-                var_artist = var_artist.replace('by' and 'By', '')
-                var_artist = Kuenstler(0, var_artist)
-            except AttributeError:
-                print('Attribut existiert nicht')
-            except IndexError:
-                print('Listeneintrag existiert nicht')
-            try:
+                        # var_artist = re.search(r"By (.*?)time=0", midi_data).group(1)
+                        # var_title = re.search(r"track_name name=(.*?)time=0", midi_data).group(1)
+            if len(meta_messages) >= 1:
                 var_title = meta_messages[0].name
-            except AttributeError:
-                print('Attribut existiert nicht')
-            except IndexError:
-                print('Listeneintrag existiert nicht')
-            try:
-                var_artist = meta_messages[1].text
-                var_artist = var_artist.replace('by' and 'By', '')
-                var_artist = Kuenstler(0, var_artist)
-            except AttributeError:
-                print('Attribut existiert nicht')
-            except IndexError:
-                print('Listeneintrag existiert nicht')
 
-            if var_artist.find_artist_id():
-                artistList.append(var_artist)
 
-            for track in mid.tracks:
-                midi_data.append(track)
-                for msg in mid.tracks[0]:
-                    midi_data.append(msg)
-
-            midi_data = str(midi_data)
             #if "track_name" in midi_data:
                 #var_title = re.search(r"track_name name=(.*?)time=0", midi_data).group(1)
             #if "key_signature" in midi_data:
                 #var_key = re.search(r"key_signature key=(.*?)time=0", midi_data).group(1)
-            if "set_tempo" in midi_data:
-                var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
+            tempo_midi_data = []
+            for track in mid.tracks:
+                for msg in track:
+                    if msg.type == 'set_tempo' and "time=0":
+                        var_tempo = msg.tempo
+            #if len(tempo_midi_data) >= 1:
+                #var_tempo = tempo_midi_data[0].tempo
+            #if "set_tempo" in midi_data:
+                #var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
                 var_tempo = int(var_tempo)
                 var_tempo = round(60000000 / var_tempo, 0)
-            #if "By " in midi_data:
-                #var_artist = re.search(r"By (.*?)time=0", midi_data).group(1)
-                #var_artist = Kuenstler(0, var_artist)
-                #if var_artist.find_artist_id():
-                    #artistList.append(var_artist)
-            #if "by " in midi_data:
-                #var_artist = re.search(r"by (.*?)time=0", midi_data).group(1)
-                #var_artist = Kuenstler(0, var_artist)
-                #if var_artist.find_artist_id():
-                    #artistList.append(var_artist)
+            #midi_data = []
+            message_types = [
+                "control_change",
+                'note_on',
+                'key_signature',
+                'midi_port',
+                'program_change',
+                'set_tempo',
+                'time_signature',
+                'end_of_track',
+                'pitchwheel',
+                'sysex',
+                'note_off'
+            ]
+            for track in mid.tracks:
+                # print(track)
+                for msg in track:
+                    if msg.type not in message_types:
+                        #print(msg)
+                        if hasattr(msg, 'name'):
+                            if msg.name != '':
+                                midi_data.append(msg.name)
+                        if hasattr(msg, 'text'):
+                            if msg.text != '':
+                                midi_data.append(msg.text)
+            midi_data = str(midi_data)
+            if "By " in midi_data:
+                var_artist = re.search(r"By (.*?)'", midi_data).group(1)
+                var_artist = Kuenstler(0, var_artist)
+                if var_artist.find_artist_id():
+                    artistList.append(var_artist)
+            if "by " in midi_data:
+                var_artist = re.search(r"by (.*?)'", midi_data).group(1)
+                var_artist = Kuenstler(0, var_artist)
+                if var_artist.find_artist_id():
+                    artistList.append(var_artist)
             var_misc.append(midi_data)
             miscstr = ",".join(var_misc)
             miscstr = re.sub("[^0-9a-zA-Z]+", " ", miscstr)
@@ -575,7 +589,7 @@ linkList = []
 hrefList = []
 artistList = []
 instrumentList = []
-starturl = 'https://bitmidi.com/'
+starturl = 'https://sing-kikk.de/'
 q = queue.Queue()
 startup()
 
