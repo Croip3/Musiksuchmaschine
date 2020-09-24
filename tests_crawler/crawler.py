@@ -260,8 +260,6 @@ class Musikstueck():
             var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
             BPS = float(var_tempo) / 60 #BPS = Beats Per Second
             var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
-            var_length = str(datetime.timedelta(seconds=var_length)) #wandelt Sekunden des Strings in Zeitangabe
-            var_length = str(var_length)
             #var_genre = ???
             #var_uploaddatum = ???
             #var_year = ???
@@ -274,7 +272,7 @@ class Musikstueck():
             var_misc = score.metadata.all()
             var_misc = str(var_misc)
             var_misc = re.sub("[^0-9a-zA-Z]+", " ", var_misc)
-            var_instruments = []
+
             instruments = score.flat.getElementsByClass('Instrument')
             for instr in instruments:
                 if instr.instrumentName is not None:
@@ -330,7 +328,12 @@ class Musikstueck():
             mid = MidiFile(file_name, clip=True)
             score = converter.parse(file_name)
             # ERROR BREAK! ERROR LOG!
-            var_length = mid.length
+            try:
+                var_length = mid.length
+            except:
+                print(f"Error at {file_name}")
+            else:
+                pass
             var_length = round(var_length)
             #var_length = str(datetime.timedelta(seconds=var_length))
             #sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
@@ -350,6 +353,7 @@ class Musikstueck():
                 # print('Track {}: {}'.format(i, track.name))
                 for msg in track:
                     if msg.type == 'track_name' or msg.type == 'text' or msg.type == 'marker':
+                        print(msg)
                         meta_messages.append((msg))
             try:
                 var_title = meta_messages[0].text
@@ -379,6 +383,7 @@ class Musikstueck():
                 print('Attribut existiert nicht')
             except IndexError:
                 print('Listeneintrag existiert nicht')
+
             if var_artist.find_artist_id():
                 artistList.append(var_artist)
 
