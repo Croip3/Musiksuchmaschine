@@ -50,7 +50,6 @@ class CrawlThread(threading.Thread):
                 print(f"THREAD {self.title} going for {self.url}")
                 with queueLock:
                     d = len(hrefList) - last_amount_crawled
-                    print(f'THREAD {self.title} has a d of {d}')
                     if d > database_push_amount:
                         print("DATABASE PUSH:\n")
                         global mydb
@@ -69,13 +68,11 @@ class CrawlThread(threading.Thread):
                         mycursor = mydb.cursor()
                         sql = "INSERT INTO crawled_urls VALUES (%s, %s, %s, %s, %s)"
                         mycursor.executemany(sql, records)
-                        print(mycursor.rowcount, "record inserted.")
 
                         # INSTRUMENTE
                         records = []
                         for k in range(last_amount_instruments, len(instrumentList)):
                             records.append(instrumentList[k].get_str())
-                        print(records)
                         mycursor2 = mydb.cursor()
                         sql2 = "INSERT INTO instrument VALUES (%s, %s)"
                         mycursor2.executemany(sql2, records)
@@ -85,12 +82,12 @@ class CrawlThread(threading.Thread):
                         cross_records = []
                         for k in range(last_amount_links, len(linkList)):
                             for instr in linkList[k].instruments:
-                                print(f"CROSS: {linkList[k].id} {instr.id} {instr.amount}")
                                 cross_records.append((linkList[k].id, instr.id, instr.amount,))
                             records.append(linkList[k].get_str())
                         mycursor2 = mydb.cursor()
                         sql2 = "INSERT INTO musikstueck VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                         mycursor2.executemany(sql2, records)
+                        print(f"{mycursor2.rowcount} new music files pushed!")
 
                         # BEINHALTET
                         mycursor = mydb.cursor()
@@ -105,7 +102,14 @@ class CrawlThread(threading.Thread):
                         sql2 = "INSERT INTO kuenstler VALUES (%s, %s)"
                         mycursor2.executemany(sql2, records)
 
-
+                        # ERRORS
+                        records = []
+                        for k in range(0, len(errors)):
+                            records.append(errors[k].get_str())
+                        mycursor2 = mydb.cursor()
+                        sql2 = "INSERT INTO error VALUES (%s, %s, %s, %s)"
+                        mycursor2.executemany(sql2, records)
+                        errors.clear()
 
 
 
@@ -178,7 +182,14 @@ class Instrument:
         return True
 
 
+class Error:
+    def __init__(self, string, file):
+        self.timestamp = time.time()
+        self.msg = string
+        self.file = file
 
+    def get_str(self):
+        return 'NULL', self.timestamp, self.msg, str(self.file)
 
 
 class Musikstueck():
@@ -215,6 +226,7 @@ class Musikstueck():
     @property
     def find_metadata(self):
         global artistList
+        global errors
         r = requests.get(self.url, allow_redirects=True)
         file_name = Path(self.url).name
         file_ext: str = Path(self.url).suffix
@@ -234,14 +246,15 @@ class Musikstueck():
                 try:
                     et = ET.parse(file_name)
                 except:
-                    print("Fehler bei ET.Parse!")
+                    errors.append(Error("Fehler bei ET.parse", self.url))
+                    rem_file = pathlib.Path(file_name)
+                    rem_file.unlink()
                     return False
                 else:
                     pass
                 root = et.getroot()
                 root = root.tag
                 if root != 'score-partwise':
-                    print("Kein Music XML!")
                     rem_file = pathlib.Path(file_name)
                     rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
                     return False
@@ -329,6 +342,9 @@ class Musikstueck():
                 mid = MidiFile(file_name, clip=True)
             except:
                 print("Midi nicht lesbar!")
+                rem_file = pathlib.Path(file_name)
+                rem_file.unlink()
+                errors.append(Error("Midi nicht lesbar", self.url))
                 return False
             else:
                 pass
@@ -336,6 +352,9 @@ class Musikstueck():
                 score = converter.parse(file_name)
             except:
                 print("Midi nicht lesbar!")
+                errors.append(Error("Fehler bei converter.parse", self.url))
+                rem_file = pathlib.Path(file_name)
+                rem_file.unlink()
                 return False
             else:
                 pass
@@ -344,11 +363,13 @@ class Musikstueck():
                 var_length = mid.length
                 var_length = round(var_length)
             except:
-                print(f"Error at {file_name}")
+                rem_file = pathlib.Path(file_name)
+                rem_file.unlink()
+                errors.append(Error("Fehler bei mid.length", self.url))
+                return False
             else:
                 pass
-            var_length = ""
-            #var_length = str(datetime.timedelta(seconds=var_length))
+
             #sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
             #die logischerweise auch keine Gesamtspielzeit haben
             var_misc = []
@@ -383,10 +404,12 @@ class Musikstueck():
                 for msg in track:
                     if msg.type == 'set_tempo' and "time=0":
                         var_tempo = msg.tempo
+                        break
             #if len(tempo_midi_data) >= 1:
                 #var_tempo = tempo_midi_data[0].tempo
             #if "set_tempo" in midi_data:
                 #var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
+            if var_tempo != "":
                 var_tempo = int(var_tempo)
                 var_tempo = round(60000000 / var_tempo, 0)
             #midi_data = []
@@ -404,10 +427,8 @@ class Musikstueck():
                 'note_off'
             ]
             for track in mid.tracks:
-                # print(track)
                 for msg in track:
                     if msg.type not in message_types:
-                        #print(msg)
                         if hasattr(msg, 'name'):
                             if msg.name != '':
                                 midi_data.append(msg.name)
@@ -454,7 +475,6 @@ class Musikstueck():
             rem_file = pathlib.Path(file_name)
             rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
-            # print(mycursor.rowcount, "record inserted.")
         else:
             rem_file = pathlib.Path(file_name)
             rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
@@ -489,13 +509,10 @@ class Url():
 
 
 def crawler(url):
-    # print(f"URL: {url}")
-    # if url in hrefList:
-    #     return True
     try: #Versucht, Verbindung zur Seite zu gelangen
         source_code = requests.get(url)
     except:
-        # print(f"ERROR AT CRAWLING {url}")
+        errors.append(Error("Fehler beim Crawlen", url))
         return True
     plain_text = source_code.text
     soup = BeautifulSoup(plain_text, features="html.parser")
@@ -504,7 +521,7 @@ def crawler(url):
     for i in range(len(items)):
         link = items[i]
         href = link.get('href')
-        nexturl = urllib.parse.urljoin(url, str(href))
+        nexturl = urllib.parse.urljoin(str(url), str(href))
         if i == len(items) - 1:
             last = 1
         else:
@@ -513,25 +530,26 @@ def crawler(url):
         with queueLock:
             if nexturl.url == url or str(href) == "None":
                 continue
-            if nexturl in hrefList:
-                continue
             cnt = False
+            for x in hrefList:
+                if x.url == nexturl.url:
+                    cnt = True
+
             for j in range(i):
                 if str(link.get("href")) == str(items[j].get("href")):
                     cnt = True
                     break
-            if cnt:
-                continue
-            if reg.search(nexturl.url):
-                # HIER KOMMT DER METADATA CODE
-                new_music = Musikstueck(nexturl.url)
-                print(f"FOUND FILE {nexturl.url}")
-                if new_music.find_metadata:
-                    linkList.append(new_music)
+            if not cnt:
+                if reg.search(nexturl.url):
+                    # HIER KOMMT DER METADATA CODE
+                    new_music = Musikstueck(nexturl.url)
+                    print(f"FOUND FILE {nexturl.url}")
+                    if new_music.find_metadata:
+                        linkList.append(new_music)
+                        hrefList.append(nexturl)
+                else:
                     hrefList.append(nexturl)
-            else:
-                hrefList.append(nexturl)
-                q.put(nexturl.url)
+                    q.put(nexturl.url)
         # with queueLock:
         #     hrefList.append(url)
     return True
@@ -558,6 +576,14 @@ def startup():
     result = cursor.fetchall()
     for entry in result:
         hrefList.append(Url(entry[0], '', 0))
+
+    cursor = mydb.cursor()
+    cursor.execute("SELECT url FROM musikstueck")
+    result = cursor.fetchall()
+    for entry in result:
+        hrefList.append(Url(entry[0], '', 0))
+    last_amount_artist = len(artistList)
+
     last_amount_crawled = len(hrefList)
 
     cursor = mydb.cursor()
@@ -589,6 +615,7 @@ linkList = []
 hrefList = []
 artistList = []
 instrumentList = []
+errors = []
 starturl = 'https://sing-kikk.de/'
 q = queue.Queue()
 startup()
@@ -605,7 +632,3 @@ for i in range(threadCount):
 for x in threads:
     x.join()
 end = time.time()
-
-print(f"\nFOUND {len(linkList)} MIDI FILES IN {end-start} seconds\nFOLLOWING MIDI FILES WERE FOUND")
-for x in linkList:
-    print(x)
