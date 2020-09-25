@@ -13,7 +13,7 @@
     </head>
     <body>
         <header>
-            <a href="main.html">SUCHE</a>
+            <a href="index.html">SUCHE</a>
         </header>
     </body>
 </html>
