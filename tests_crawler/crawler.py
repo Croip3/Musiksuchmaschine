@@ -465,7 +465,8 @@ class Musikstueck():
             #var_instruments = re.sub("[^0-9a-zA-ZÀ-ÖØ-öø-ÿ+öÖäÄüÜ]+", " ", var_instruments)
             #var_instruments enthält Instrumente
 
-
+            if var_title == '':
+                var_title = file_name
             self.artist = var_artist
             self.title = var_title
             self.misc = miscstr
@@ -564,6 +565,7 @@ def startup():
     global last_amount_links
     global last_amount_instruments
     global q
+
     if cursor.rowcount > 0:
         for entry in result:
             print(f"put {entry[0]} to q")
@@ -571,6 +573,7 @@ def startup():
     else:
         print(f"put {starturl} to q")
         q.put(starturl)
+
     cursor = mydb.cursor()
     cursor.execute("SELECT DISTINCT ParentId FROM crawled_urls WHERE last = 1")
     result = cursor.fetchall()
