@@ -6,11 +6,14 @@
 
 <html>
     <head>
-
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="main.css">
+        <title>Musiksuchmaschine</title>
     </head>
     <body>
         <header>
-            <a href="main.html">SUCHE</a>
+            <a href="index.html">SUCHE</a>
         </header>
     </body>
 </html>
