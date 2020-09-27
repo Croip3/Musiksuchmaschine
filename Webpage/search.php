@@ -18,8 +18,6 @@
     </body>
 </html>
 
-<?php
-
-    
+<?php    
     $search = new ViewResults();
 ?>
