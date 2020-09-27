@@ -13,6 +13,7 @@ import pathlib
 from music21 import *
 from mido import MidiFile
 import magic
+import numpy as np
 from xml.etree import ElementTree as ET
 
 
@@ -557,50 +558,58 @@ def crawler(url):
 
 
 def startup():
-    cursor = mydb.cursor()
+    cursor = mydb.cursor(buffered=True)
     cursor.execute("SELECT url FROM crawled_urls WHERE url NOT IN (SELECT ParentId FROM crawled_urls WHERE last = 1)")
-    result = cursor.fetchall()
     global last_amount_crawled
     global last_amount_artist
     global last_amount_links
     global last_amount_instruments
-    global q
-
+    global q, hrefList, artistList, instrumentList
+    print(f"FOUND {cursor.rowcount} Websites still to crawl")
     if cursor.rowcount > 0:
-        for entry in result:
-            print(f"put {entry[0]} to q")
+        for entry in cursor:
+            # print(f"put {entry[0]} to q")
             q.put(entry[0])
     else:
         print(f"put {starturl} to q")
         q.put(starturl)
 
-    cursor = mydb.cursor()
+    cursor = mydb.cursor(buffered=True)
     cursor.execute("SELECT DISTINCT ParentId FROM crawled_urls WHERE last = 1")
-    result = cursor.fetchall()
-    for entry in result:
-        hrefList.append(Url(entry[0], '', 0))
+    cursor_music = mydb.cursor(buffered=True)
+    cursor_music.execute("SELECT url FROM musikstueck")
+    print(cursor)
+    music_rows = + cursor_music.rowcount
+    if music_rows == -1:
+        music_rows = 0
+    if cursor.rowcount > 0:
+        hrefList = [None] * (cursor.rowcount + music_rows)
+    print(len(hrefList))
+    for i, entry in enumerate(cursor):
+        print(f"{i} is now {entry[0]}")
+        hrefList[i] = Url(entry[0], '', 0)
 
-    cursor = mydb.cursor()
-    cursor.execute("SELECT url FROM musikstueck")
-    result = cursor.fetchall()
-    for entry in result:
-        hrefList.append(Url(entry[0], '', 0))
+    for i, entry in enumerate(cursor_music):
+        print(f"{i + cursor.rowcount} is now {entry[0]}")
+        hrefList[i + cursor.rowcount] = Url(entry[0], '', 0)
     last_amount_artist = len(artistList)
 
     last_amount_crawled = len(hrefList)
 
-    cursor = mydb.cursor()
+    cursor = mydb.cursor(buffered=True)
     cursor.execute("SELECT id, name FROM kuenstler")
-    result = cursor.fetchall()
-    for entry in result:
-        artistList.append(Kuenstler(entry[0], entry[1]))
+    if cursor.rowcount > 0:
+        artistList = [None] * cursor.rowcount
+        for i, entry in enumerate(cursor):
+            artistList[i] = Kuenstler(entry[0], entry[1])
     last_amount_artist = len(artistList)
 
-    cursor = mydb.cursor()
+    cursor = mydb.cursor(buffered=True)
     cursor.execute("SELECT id, name FROM instrument")
-    result = cursor.fetchall()
-    for entry in result:
-        instrumentList.append(Instrument(entry[0], entry[1]))
+    if cursor.rowcount > 0:
+        instrumentList = [None] * cursor.rowcount
+        for i, entry in enumerate(cursor):
+            instrumentList[i] = Instrument(entry[0], entry[1])
     last_amount_instruments = len(instrumentList)
 
 
