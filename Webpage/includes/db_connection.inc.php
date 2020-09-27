@@ -9,7 +9,7 @@
         public function connect() {
             $this->ip = "localhost:3306";
             $this->username = "root";
-            $password = "3X2SDuKU8v5";
+            $this->password = "3X2SDuKU8v5";
             $this->db = "musiksuchmaschine";
 
 
