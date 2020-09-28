@@ -62,15 +62,42 @@ function search() {
 
 var sliderTempomin;
 var sliderTempomax;
+var sliderLaengemin;
+var sliderLaengemax;
+
+
+
+function showFilterSliderValue(){
+    document.getElementById("tempomin").oninput = function() {
+        document.getElementById("tempominValue").innerHTML = this.value;
+    }
+    document.getElementById("tempomax").oninput = function() {
+        document.getElementById("tempomaxValue").innerHTML = this.value;
+    }
+    document.getElementById("lengmin").oninput = function() {
+        document.getElementById("laengeminValue").innerHTML = this.value;
+    }
+    document.getElementById("lengmax").oninput = function() {
+        document.getElementById("laengemaxValue").innerHTML = this.value;
+    }
+}
 
 function setFilter(){
+    //read Tempo slider
     sliderTempomin = document.getElementById("tempomin").value;
     sliderTempomax = document.getElementById("tempomax").value;
+
+    //read Länge slider
+    sliderLaengemin = document.getElementById("lengmin").value;
+    sliderLaengemax = document.getElementById("lengmax").value;    
 
     filterResults();
 }
 
 function filterResults(){
-    console.log(sliderTempomin);
-    console.log(sliderTempomax);
+    console.log("minTempo: " + sliderTempomin);
+    console.log("maxTempo: " + sliderTempomax);
+
+    console.log("minLänge: " + sliderLaengemin);
+    console.log("maxLänge: " + sliderLaengemax);
 }

@@ -16,7 +16,7 @@
     <title>Musiksuchmaschine</title>
 </head>
 
-<body>
+<body onload="showFilterSliderValue()">
     <h2>Musiksuchmaschine</h2>
     
     <form action="search.php" method="GET">
@@ -25,24 +25,30 @@
             <img alt="" id="glass" src="glass.png">
             <input type="text" id="search" name="search" spellcheck="false">
         </div>
-        <input type="submit" value="Suchen PHP">   
+        <input type="submit" value="echo search array">   
     
     </form>
 
     <input type='button' onClick='search()' value="Suchen">
 
-        <div class="searchfilter">
+        <div class="searchfilter" >
             <form action="">
                 <div class="grid-container">
                     <div class="title">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <label for="title">Titel</label>
                         <input type="text" name="title" id="searchtitle">
                     </div>
                     <div class="artist">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <label for="artist">Interpret</label>
                         <input type="text" name="artist" id="searchartist">
                     </div>
                     <div class="genre">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <label for="genre">Genre</label><br>
                         <select name="genre" id="selectgenre">
                             <option value="genre1">Rock</option>
@@ -51,6 +57,8 @@
                         </select>
                     </div>
                     <div class="year">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <label for="year">Jahr</label><br>
                         <select name="year" id="selectyear">
                             <option value="year1">2000</option>
@@ -59,6 +67,8 @@
                         </select>
                     </div>
                     <div class="epoch">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <label for="epoch">Epoche</label><br>
                         <select name="epoch" id="selectepoch">
                             <option value="epoch1">Klassik</option>
@@ -75,58 +85,43 @@
                         </select>
                     </div>
                     <?php
-                        class FilterData extends ViewResults{
-                            public function filterData() {
-                                /*$sql = "SELECT laenge FROM `musikstueck` ORDER BY CAST(laenge AS INT)";
-                                $res = $this->connect()->query($sql);
-
-                                $num = $res->num_rows;
-                                if($num > 0){
-                                    while($row = $res->fetch_assoc()){
-                                        $data[] = $row;
-                                    }
-
-                                    $datas = $this->searchData();
-                                    echo $minTempo = $datas[0]['id'];
-                                    echo $maxTempo = $datas[count($datas)-1]['id'];
-                                }*/                     
+                        class Filter extends ViewResults{
+                            public function filterTempo() {                    
                     
-                                echo '<div class="tempo">';
+                                echo '<div class="tempo" >';
                                     echo "<p>Tempo</p>";
                                     echo "<label for='tempomin'>mindestens</label>";
-                                    $minTempo = new ViewResults;                                                                        
-                                    $maxTempo = new ViewResults;
-                                    echo "<input type='range' name='tempomin' id='tempomin' min='".$minTempo->minTempo()."' max='".$maxTempo->maxTempo()."' value='".$minTempo->minTempo()."'>";
-                                    echo "<p><span id='demo1'></span> BPM</p>";
+                                    $tempo = new ViewResults;
+                                    echo "<input type='range' name='tempomin' id='tempomin' min='".$tempo->minTempo()."' max='".$tempo->maxTempo()."' value='".$tempo->minTempo()."'>";
+                                    echo "<p><span id='tempominValue'></span> BPM</p>";
                                     echo "<label for='tempomax'>maximal</label>";
-                                    echo "<input type='range' name='tempomax' id='tempomax' min='".$minTempo->minTempo()."' max='".$maxTempo->maxTempo()."' value='".$maxTempo->maxTempo()."'>";
-                                    echo "<p><span id='demo2'></span> BPM</p>";
+                                    echo "<input type='range' name='tempomax' id='tempomax' min='".$tempo->minTempo()."' max='".$tempo->maxTempo()."' value='".$tempo->maxTempo()."'>";
+                                    echo "<p><span id='tempomaxValue'></span> BPM</p>";
                                 echo "</div>";
+                            }
+                            
+                            public function filterLaenge() {
+                                echo'<div class="length">';
+                                    echo'<p>Länge</p>';
+                                    echo'<label for="lengmin">mindestens</label>';
+                                    $laenge = new ViewResults;
+                                    echo '<input type="range" name="lengmin" id="lengmin" min="'.$laenge->minLaenge().'" max="'.$laenge->maxLaenge().'" value="'.$laenge->minLaenge().'">';                   
+                                    echo '<p><span id="laengeminValue"></span> Minuten</p>';
+                                    echo '<label for="lengmax">maximal</label>';
+                                    echo '<input type="range" name="lengmax" id="lengmax" min="'.$laenge->minLaenge().'" max="'.$laenge->maxLaenge().'" value="'.$laenge->maxLaenge().'">';
+                                    echo '<p><span id="laengemaxValue"></span> Minuten</p>';
+                                echo '</div>';
                             }
                         }
 
-                        $filter = new FilterData;
-                        $filter->filterData();
-                    ?>
-                    <!--<div class="tempo">
-                        <p>Tempo</p>
-                        <label for="tempomin">mindestens</label>
-                        <input type="range" name="tempomin" id="tempomin" min="1" max="400" value="1">
-                        <p><span id="demo1"></span> BPM</p>
-                        <label for="tempomax">maximal</label>
-                        <input type="range" name="tempomax" id="tempomax" min="1" max="400" value="400">
-                        <p><span id="demo2"></span> BPM</p>
-                    </div>-->
-                    <div class="length">
-                        <p>Länge</p>
-                        <label for="lengmin">mindestens</label>
-                        <input type="range" name="lengmin" id="lengmin" min="1" max="60" value="1">
-                        <p><span id="demo3"></span> Minuten</p>
-                        <label for="lengmax">maximal</label>
-                        <input type="range" name="lengmax" id="lengmax" min="1" max="60" value="60">
-                        <p><span id="demo4"></span> Minuten</p>
-                    </div>
+                        $filter = new Filter;
+                        $filter->filterTempo();
+                        $filter->filterLaenge();
+                        ?>
+                        
                     <div class="date">
+                        <p style="color: #FF0000; font-weight: bold;">INOP</p>
+
                         <p>Uploaddatum</p>
                         <label for="datemin">von</label>
                         <input type="date" name="datemin" id="datemin">
@@ -134,6 +129,10 @@
                         <input type="date" name="datemax" id="datemax">
                     </div>
                 </div>
+
+                <?php
+                    
+                ?>
                 
                 <input type='button' onClick='setFilter()' value="Bestätigen">
                 <button>Filter löschen</button>

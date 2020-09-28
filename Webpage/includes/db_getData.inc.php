@@ -33,8 +33,7 @@ class SearchDB extends DatabaseConnection{
                 while($row = $res->fetch_assoc()){
                     $data[] = $row;
                 }
-                return $data;
-                
+                return $data;                
             }
         }
 
@@ -47,8 +46,20 @@ class SearchDB extends DatabaseConnection{
                 while($row = $res->fetch_assoc()){
                     $data[] = $row;
                 }
-                return $data;
-                
+                return $data;                
+            }
+        }
+
+        public function getLaenge(){
+            $sql = "SELECT laenge FROM `musikstueck` ORDER BY laenge*1";
+            $res = $this->connect()->query($sql);
+
+            $num = $res->num_rows;
+            if($num > 0){
+                while($row = $res->fetch_assoc()){
+                    $data[] = $row;
+                }
+                return $data;                
             }
         }
     }
