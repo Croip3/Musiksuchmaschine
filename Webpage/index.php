@@ -1,3 +1,9 @@
+<?php 
+    require 'includes/db_connection.inc.php';
+    require 'includes/db_getData.inc.php';
+    require 'includes/db_viewResults.inc.php';
+?>
+
 <!DOCTYPE html>
 <html lang="de">
 
@@ -5,23 +11,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="main.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src ='js/main.js'></script>
     <title>Musiksuchmaschine</title>
 </head>
 
 <body>
-    <h1>Logo</h1>
-
-
-    <form action="search.php" method="POST">
+    <h2>Musiksuchmaschine</h2>
+    
+    <form action="search.php" method="GET">
 
         <div id="searchbar">
             <img alt="" id="glass" src="glass.png">
             <input type="text" id="search" name="search" spellcheck="false">
         </div>
-        <input type="submit" value="Suchen">
+        <input type="submit" value="Suchen PHP">   
     
     </form>
 
+    <input type='button' onClick='search()' value="Suchen">
 
         <div class="searchfilter">
             <form action="">
@@ -66,7 +74,41 @@
                             <option value="key3">F-Dur/d-Moll</option>
                         </select>
                     </div>
-                    <div class="tempo">
+                    <?php
+                        class FilterData extends ViewResults{
+                            public function filterData() {
+                                /*$sql = "SELECT laenge FROM `musikstueck` ORDER BY CAST(laenge AS INT)";
+                                $res = $this->connect()->query($sql);
+
+                                $num = $res->num_rows;
+                                if($num > 0){
+                                    while($row = $res->fetch_assoc()){
+                                        $data[] = $row;
+                                    }
+
+                                    $datas = $this->searchData();
+                                    echo $minTempo = $datas[0]['id'];
+                                    echo $maxTempo = $datas[count($datas)-1]['id'];
+                                }*/                     
+                    
+                                echo '<div class="tempo">';
+                                    echo "<p>Tempo</p>";
+                                    echo "<label for='tempomin'>mindestens</label>";
+                                    $minTempo = new ViewResults;                                                                        
+                                    $maxTempo = new ViewResults;
+                                    echo "<input type='range' name='tempomin' id='tempomin' min='".$minTempo->minTempo()."' max='".$maxTempo->maxTempo()."' value='".$minTempo->minTempo()."'>";
+                                    echo "<p><span id='demo1'></span> BPM</p>";
+                                    echo "<label for='tempomax'>maximal</label>";
+                                    echo "<input type='range' name='tempomax' id='tempomax' min='".$minTempo->minTempo()."' max='".$maxTempo->maxTempo()."' value='".$maxTempo->maxTempo()."'>";
+                                    echo "<p><span id='demo2'></span> BPM</p>";
+                                echo "</div>";
+                            }
+                        }
+
+                        $filter = new FilterData;
+                        $filter->filterData();
+                    ?>
+                    <!--<div class="tempo">
                         <p>Tempo</p>
                         <label for="tempomin">mindestens</label>
                         <input type="range" name="tempomin" id="tempomin" min="1" max="400" value="1">
@@ -74,7 +116,7 @@
                         <label for="tempomax">maximal</label>
                         <input type="range" name="tempomax" id="tempomax" min="1" max="400" value="400">
                         <p><span id="demo2"></span> BPM</p>
-                    </div>
+                    </div>-->
                     <div class="length">
                         <p>Länge</p>
                         <label for="lengmin">mindestens</label>
@@ -92,9 +134,10 @@
                         <input type="date" name="datemax" id="datemax">
                     </div>
                 </div>
-                <button>Bestäigen</button>
+                
+                <input type='button' onClick='setFilter()' value="Bestätigen">
                 <button>Filter löschen</button>
-            </form>
+            </form>            
         </div>
 
     

@@ -1,47 +1,42 @@
-
-
-<?php
-
+<?php 
 class ViewResults extends SearchDB{
-        public function __construct(){
+        public function __construct(){            
+        }
+
+        public function searchBAr(){
             $datas = $this->searchData();
             if (is_array($datas) || is_object($datas)){
-                echo "gefundene Daten: <br>";
-
-                echo '<table>';
-                    echo '<tr>';
-                        echo '<td>Titel</td>';
-                        echo "<td>Kuenstler</td>";
-                        echo "<td>Url</td>";
-                        echo "<td>Genre</td>";
-                        echo "<td>Epoche</td>";
-                    echo "</tr>";
-
+                $ret = array();
                 foreach($datas as $data){
-                    echo '<tr>';
-                        echo "<td>".$data['Titel']."</td>";
-                        echo "<td>".$data['name']."</td>";
-                        echo "<td><a href=".$data['Url'].">".$data['Url']."</a></td>";
-                        echo "<td>".$data['Genre']."</td>";
-                        echo "<td>".$data['Epoche']."</td>";
-                    echo "</tr>";
-
-                        /*echo $data['id']." ";
-                        echo $data['Tempo']." ";
-                        echo $data['Genre']." ";
-                        echo $data['Uploaddatum']." ";
-                        echo $data['Laenge']." ";
-                        echo $data['Jahr']." ";
-                        echo $data['Tonart']." ";
-                        echo $data['Epoche']." ";
-                        echo $data['Titel']." ";
-                        echo "<a href=".$data['Url'].">".$data['Url']."</a>";
-                        echo $data['name']."<br>";*/
+                    $instrumentData = $this->getInstruments($data['id']);
+                    $instruments = array();
+                    if (is_array($instrumentData) || is_object($instrumentData)){
+                        foreach($instrumentData as $instr) {
+                            $instruments[] = $instr['name'];
+                        }
+                    }
+                    
+                    $artist = $this->getArtist($data['id']);
+                    if (is_array($artist) || is_object($artist)) {
+                        $artist = $artist[0]['name'];
+                    }
+                    $ret[] = array('id'=> $data['id'], 'Tempo'=> $data['Tempo'], 'Genre'=> $data['Genre'], 'Uploaddatum'=> $data['Uploaddatum'], 'Laenge'=> $data['Laenge'], 'Jahr'=> $data['Jahr'], 'Tonart'=> $data['Tonart'], 'Epoche'=> $data['Epoche'], 'Titel'=> $data['Titel'], 'Url' => $data['Url'], 'Kuenstler'=> $artist, 'Instrumente' => $instruments);
                 }
-                echo "</table>";
             }else{
                 echo "keine Daten gefunden";
             }
+        $this->data = json_encode($ret);
+        }
+
+        public function minTempo(){
+            $datas = $this->getTempo();
+            $minTempo = $datas[0]['Tempo'];
+            return $minTempo;
+        }
+        public function maxTempo(){
+            $datas = $this->getTempo();
+            $maxTempo = $datas[count($datas)-1]['Tempo'];
+            return $maxTempo;
         }
     }
 ?>
