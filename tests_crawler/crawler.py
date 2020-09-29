@@ -227,6 +227,7 @@ class Musikstueck():
     def find_metadata(self):
         global artistList
         global errors
+        #lädt Datei herunter und benennt Endung + Datei
         r = requests.get(self.url, allow_redirects=True)
         file_name = Path(self.url).name
         file_ext: str = Path(self.url).suffix
@@ -235,12 +236,11 @@ class Musikstueck():
             file_ext = str(magic.from_file(file_name, mime=True))
             file_ext = Path(file_ext).name
             file_ext = file_ext[:4]
-            file_name = str(file_name) + '.' + file_ext  # benennt Datei mit richtiger Endung
+            file_name = str(file_name) + '.' + file_ext
         else:
             pass
-
+        #öffnet Datei und testet, um welchen Typ es sich handelt
         open(file_name, 'wb').write(r.content)
-
         if file_ext == 'xml' or file_ext == '.xml' or file_ext == '.mxl' or file_ext == 'mxl':
             if file_ext == 'xml' or file_ext == '.xml':
                 try:
@@ -255,10 +255,13 @@ class Musikstueck():
                 root = et.getroot()
                 root = root.tag
                 if root != 'score-partwise':
+                    #entfernt heruntergeladene Datei
                     rem_file = pathlib.Path(file_name)
-                    rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
+                    rem_file.unlink()
                     return False
             # ERROR BREAK! ERROR LOG!
+            #öffnet Datei mit music21 und sucht Metadaten
+            #für Details Dokumentation von music21 lesen (am besten über Google mit Stichworten)
             score = converter.parse(file_name)
             var_tempo = score.metronomeMarkBoundaries(srcObj=None) #sucht BPM für Viertel heraus (also normale BPM)
             var_tempo = str(var_tempo)
@@ -273,13 +276,8 @@ class Musikstueck():
             var_length = score.duration.quarterLength #gibt Dauer des ganzen Stücks in Viertel Noten an
             BPS = float(var_tempo) / 60 #BPS = Beats Per Second
             var_length = round(var_length / BPS)  #die Länge aus Viertelnoten geteilt durch die Viertelnoten pro Sekdunde
-            #var_genre = ???
-            #var_uploaddatum = ???
-            #var_year = ???
             var_key = score.analyze('key')
             var_key = str(var_key)
-            #var_epoche = ???
-            #var_url = ???
             var_title = score.metadata.title
             var_artist = Kuenstler(0, score.metadata.composer)
             var_misc = score.metadata.all()
@@ -299,27 +297,6 @@ class Musikstueck():
                     else:
                         self.instruments.append(currInstrument)
 
-
-            # var_instruments enthält nun alle Instrumente
-            # das Stream Objekt verfügt über Metadaten print nur für den fall von fehlern als kontrolle
-            # https://web.mit.edu/music21/doc/moduleReference/moduleMetadata.html?#module-music21.metadata
-            # print(score.metadata.title)
-            # print(score.metadata.composer)
-            # print(score.metadata.date)
-            # print(score.metadata.all())
-            # print(score.duration)
-
-            # einzelen Variablen mit den entsprechenden Metadaten befüllen
-
-            # secondsMap zeigt alles an, was in Sekdunen angegeben wurde
-            # print(score.secondsMap)
-
-            # zeigt alles an, was irgendwie mit dem Tempo zu tun hat
-            # print(score.metronomeMarkBoundaries())
-            # print(var_title)
-
-            # trägt Komponisten in DB ein, wenn sie nicht schon da sind
-
             if var_artist.find_artist_id():
                 artistList.append(var_artist)
 
@@ -333,8 +310,6 @@ class Musikstueck():
             rem_file.unlink()  # entfernt die unter file_name heruntergeladene Datei
             return True
 
-                # wie regeln wir es, dass Künstler nicht doppelt eingetragen werden?
-                # BPM, Länge
         else:
             pass
         if file_ext == '.mid' or file_ext == 'midi':
@@ -362,6 +337,8 @@ class Musikstueck():
             try:
                 var_length = mid.length
                 var_length = round(var_length)
+                # sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
+                # die logischerweise auch keine Gesamtspielzeit haben
             except:
                 rem_file = pathlib.Path(file_name)
                 rem_file.unlink()
@@ -370,49 +347,31 @@ class Musikstueck():
             else:
                 pass
 
-            #sollte es bei mid.length einen Value Error hier geben, dann weil es asynchrone Midi-Files gibt,
-            #die logischerweise auch keine Gesamtspielzeit haben
             var_misc = []
-            var_data = ""
             var_title = ""
             var_artist = Kuenstler(0, "unbekannnt")
             var_tempo = 0
             var_key = score.analyze('key')
             var_key = str(var_key)
-            var_url = ""
-            midi_data = [] #leere Liste für Midi Daten
+            midi_data = []
             meta_messages = []
+            #geht alle Midi-Tracks des Files durch, sucht Messages mit bestimmten Typ heraus
             for i, track in enumerate(
-                    mid.tracks):  # wenn es richtig benannte Instrumenten Tracks gibt, werden sie hier gesammelt
-                # print('Track {}: {}'.format(i, track.name))
+                    mid.tracks):
                 for msg in track:
-                    if msg.type == 'track_name':
-                        #print(msg)
+                    if msg.type == 'track_name': #'track_name" => typ
                         meta_messages.append((msg))
-                        # var_artist = re.search(r"By (.*?)time=0", midi_data).group(1)
-                        # var_title = re.search(r"track_name name=(.*?)time=0", midi_data).group(1)
             if len(meta_messages) >= 1:
-                var_title = meta_messages[0].name
+                var_title = meta_messages[0].name #.name => attribut
 
-
-            #if "track_name" in midi_data:
-                #var_title = re.search(r"track_name name=(.*?)time=0", midi_data).group(1)
-            #if "key_signature" in midi_data:
-                #var_key = re.search(r"key_signature key=(.*?)time=0", midi_data).group(1)
-            tempo_midi_data = []
             for track in mid.tracks:
                 for msg in track:
                     if msg.type == 'set_tempo' and "time=0":
                         var_tempo = msg.tempo
                         break
-            #if len(tempo_midi_data) >= 1:
-                #var_tempo = tempo_midi_data[0].tempo
-            #if "set_tempo" in midi_data:
-                #var_tempo = re.search(r"set_tempo tempo=(.*?) time=0", midi_data).group(1)
             if var_tempo != 0:
                 var_tempo = int(var_tempo)
                 var_tempo = round(60000000 / var_tempo, 0)
-            #midi_data = []
             message_types = [
                 "control_change",
                 'note_on',
@@ -436,6 +395,8 @@ class Musikstueck():
                             if msg.text != '':
                                 midi_data.append(msg.text)
             midi_data = str(midi_data)
+            #Artist werden oft mit einem "by" davor gekennzeichnet, wird mit regular expressions herausgesucht
+            #in Midi Artists leider nicht genauer ausgezeichnet, bräuchte zusätzliches Infos
             if "By " in midi_data:
                 var_artist = re.search(r"By (.*?)'", midi_data).group(1)
                 var_artist = Kuenstler(0, var_artist)
@@ -462,8 +423,6 @@ class Musikstueck():
                             break
                     else:
                         self.instruments.append(currInstrument)
-            #var_instruments = re.sub("[^0-9a-zA-ZÀ-ÖØ-öø-ÿ+öÖäÄüÜ]+", " ", var_instruments)
-            #var_instruments enthält Instrumente
 
             if var_title == '':
                 var_title = file_name
