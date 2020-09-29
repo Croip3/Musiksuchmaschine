@@ -94,6 +94,7 @@ require 'includes/db_viewResults.inc.php';
                             $getKeys = new ViewResults;
                             $keys = $getKeys->key();
                             echo '<select name="key" id="selectkey">';
+                            echo '<option value="alle">Alle</option>';
                             foreach ($keys as $key) {
                                 echo '<option value="' . $key["Tonart"] . '">' . $key["Tonart"] . '</option>';
                             }
