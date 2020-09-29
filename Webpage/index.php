@@ -21,7 +21,7 @@ require 'includes/db_viewResults.inc.php';
         <div class="heading">
             <h2>Musiksuchmaschine</h2>
 
-            <form action="search.php" method="GET">
+            <!-- <form action="search.php" method="GET"> -->
 
                 <div id="searchbar">
                     <img alt="" id="glass" src="glass.png">
@@ -31,10 +31,11 @@ require 'includes/db_viewResults.inc.php';
                 <!-- echo sql query -->
                 <!--<input type="submit" value="echo search array">-->
 
-            </form>
+            <!-- </form> -->
 
 
             <input type='button' onClick='search()' value="Suchen">
+            <div class='results'></div>
         </div>
 
         <div class="searchfilter">
@@ -154,9 +155,10 @@ require 'includes/db_viewResults.inc.php';
 
                 ?>
 
-                <input type='button' onClick='setFilter()' value="Bestätigen">
-                <button>Filter löschen</button>
+                
             </form>
+                <input type='button' onClick='setFilter()' value="Bestätigen">
+                <input type='button' onClick='deleteFilter()' value="Filter löschen">
         </div>
     </div>
 

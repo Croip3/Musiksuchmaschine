@@ -1,15 +1,12 @@
 @charset "UTF-8";
 * {
-  font-family: Georgia, Times, 'Times New Roman', serif;
-}
+  font-family: Georgia, Times, 'Times New Roman', serif; }
 
 body {
-  text-align: center;
-}
+  text-align: center; }
 
 p {
-  margin: 0;
-}
+  margin: 0; }
 
 button, input[type=button] {
   margin: 1em;
@@ -17,13 +14,11 @@ button, input[type=button] {
   background-image: linear-gradient(#D1D1D1, #8d8d8d);
   font-size: 1em;
   border-radius: 0.2em;
-  padding: 0.2em;
-}
+  padding: 0.2em; }
 
 button:hover, input[type=button]:hover {
   cursor: pointer;
-  background-image: linear-gradient(#8d8d8d, #d1d1d1);
-}
+  background-image: linear-gradient(#8d8d8d, #d1d1d1); }
 
 #searchbar {
   display: flex;
@@ -32,133 +27,121 @@ button:hover, input[type=button]:hover {
   border-radius: 1em;
   width: 70%;
   padding: 0.5em 1em;
-  margin: auto;
-}
+  margin: auto; }
 
 #glass {
-  width: 1.5em;
-}
+  width: 1.5em; }
 
 #search, #search:focus {
   border: none;
   outline: none;
   width: 100%;
-  padding-left: 1em;
-}
+  padding-left: 1em; }
 
 .grid-container div {
   border: 1px solid grey;
-  padding: 1em;
-}
+  padding: 1em; }
 
 .title {
-  grid-area: Titel;
-}
+  grid-area: Titel; }
 
 .artist {
-  grid-area: Artist;
-}
+  grid-area: Artist; }
 
 .genre {
-  grid-area: Genre;
-}
+  grid-area: Genre; }
 
 .year {
-  grid-area: Jahr;
-}
+  grid-area: Jahr; }
 
 .epoch {
-  grid-area: Epoche;
-}
+  grid-area: Epoche; }
 
 .key {
-  grid-area: Tonart;
-}
+  grid-area: Tonart; }
 
 .tempo {
-  grid-area: Tempo;
-}
+  grid-area: Tempo; }
 
 .length {
-  grid-area: Länge;
-}
+  grid-area: Länge; }
 
 .date {
-  grid-area: Datum;
-}
+  grid-area: Datum; }
 
 .result-card {
   border: 1px solid grey;
   display: block;
   margin: 1em;
   padding: 0.5em;
-  border-radius: 0.2em;
-}
+  border-radius: 0.2em; }
 
 /*Smartphone*/
-
 @media screen and (max-width: 40em) {
   h2 {
     font-size: 2em;
-    margin: auto;
-  }
+    margin: auto; }
+
   p, label {
-    font-size: 0.7em;
-  }
+    font-size: 0.7em; }
+
   .grid-container {
     display: grid;
-    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum";
-  }
-}
-
+    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum"; } }
 /*Tablet*/
-
 @media screen and (min-width: 40.01em) and (max-width: 60em) {
   h2 {
     font-size: 2em;
-    margin: auto;
-  }
+    margin: auto; }
+
   .searcharea {
     display: flex;
-    flex-direction: row-reverse;
-  }
+    flex-direction: row-reverse; }
+
   .grid-container input[type=text], input[type=range] {
-    width: 7em;
-  }
+    width: 7em; }
+
   .heading {
-    width: 80%;
-    padding-top: 10em;
-  }
+    width: 80%; }
+
   .grid-container {
     display: grid;
     grid-template-columns: 8em 8em;
-    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum";
-  }
-}
-
+    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum"; } }
 /*Desktop*/
-
 @media screen and (min-width: 60.01em) {
   h2 {
     font-size: 3em;
-    margin: auto;
-  }
+    margin: auto; }
+
   .searcharea {
     display: flex;
-    flex-direction: row-reverse;
-  }
+    flex-direction: row-reverse; }
+
   .heading {
-    width: 80%;
-    padding-top: 10em;
-  }
+    width: 80%; }
+
   .grid-container {
     display: grid;
     grid-template-columns: 10em 10em;
-    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum";
-  }
+    grid-template-areas: "Titel Artist" "Genre Jahr" "Epoche Tonart" "Tempo Länge" "Datum Datum"; }
+
   .grid-container input[type=text] {
-    width: 9em;
-  }
-}
+    width: 9em; } }
+.result-card {
+  color: black;
+  cursor: pointer;
+  text-decoration: none; }
+  .result-card h3 {
+    color: blue;
+    text-decoration: underline;
+    margin-bottom: 0; }
+  .result-card .div-url {
+    color: blue;
+    text-decoration: underline;
+    font-size: small;
+    margin-bottom: 1em; }
+
+/*# sourceMappingURL=main.css.map */
 
 /*# sourceMappingURL=main.css.map */

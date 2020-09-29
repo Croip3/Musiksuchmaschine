@@ -1,9 +1,15 @@
 <?php 
 class SearchDB extends DatabaseConnection{
         public function searchData(){
-            $search = '%'.$_GET['search'].'%';
-           
-            $res = $this->connect()->query("SELECT * FROM musikstueck WHERE Genre like '$search' OR Epoche like '$search' OR Titel like '$search' OR Url LIKE '$search' OR Sonstiges LIKE '$search' ");
+            $conn = $this->connect();
+            $conn->query("SET NAMES 'utf8'");
+            if (isset($_GET['search'])) {
+                $search = '%'.$_GET['search'].'%';
+                $res = $conn->query("SELECT * FROM musikstueck WHERE Genre like '$search' OR Epoche like '$search' OR Titel like '$search' OR Url LIKE '$search' OR Sonstiges LIKE '$search' ");
+            } else {
+                $res = $conn->query("SELECT * FROM musikstueck");
+            }
+            
             $num = $res->num_rows;
             if($num > 0){
                 while($row = $res->fetch_assoc()){
@@ -27,11 +33,11 @@ class SearchDB extends DatabaseConnection{
         }
 
         public function getInstruments($id) {
-            $res = $this->connect()->query("SELECT instrument.name FROM beinhaltet JOIN musikstueck ON musikstueck.id = beinhaltet.stueckid JOIN instrument ON beinhaltet.instrumentid = instrument.id WHERE musikstueck.id = $id");
+            $res = $this->connect()->query("SELECT instrument.name, beinhaltet.anzahl FROM beinhaltet JOIN musikstueck ON musikstueck.id = beinhaltet.stueckid JOIN instrument ON beinhaltet.instrumentid = instrument.id WHERE musikstueck.id = $id");
             $num = $res->num_rows;
             if($num > 0){
                 while($row = $res->fetch_assoc()){
-                    $data[] = $row;
+                    $data[] = array("name" => htmlentities($row["name"]), "anzahl" => htmlentities($row["anzahl"]));
                 }
                 return $data;                
             }

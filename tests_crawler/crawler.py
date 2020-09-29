@@ -210,9 +210,9 @@ class Musikstueck():
         self.instruments = []
 
     def get_id(self):
-        global linkList
+        global linkList, firstId
         if len(linkList) == 0:
-            return 0
+            return firstId
         return linkList[len(linkList) - 1].id + 1
 
     def __str__(self):
@@ -537,13 +537,11 @@ def startup():
     cursor.execute("SELECT DISTINCT ParentId FROM crawled_urls WHERE last = 1")
     cursor_music = mydb.cursor(buffered=True)
     cursor_music.execute("SELECT url FROM musikstueck")
-    print(cursor)
     music_rows = + cursor_music.rowcount
     if music_rows == -1:
         music_rows = 0
     if cursor.rowcount > 0:
         hrefList = [None] * (cursor.rowcount + music_rows)
-    print(len(hrefList))
     for i, entry in enumerate(cursor):
         print(f"{i} is now {entry[0]}")
         hrefList[i] = Url(entry[0], '', 0)
@@ -571,6 +569,14 @@ def startup():
             instrumentList[i] = Instrument(entry[0], entry[1])
     last_amount_instruments = len(instrumentList)
 
+    cursor = mydb.cursor(buffered=True)
+    global firstId
+    cursor.execute("select auto_increment from information_schema.TABLES where TABLE_NAME = 'musikstueck' and TABLE_SCHEMA = 'musiksuchmaschine'")
+    if cursor.rowcount > 0:
+        firstId = cursor.fetchone()[0]
+
+
+
 
 
 
@@ -580,6 +586,7 @@ last_amount_links = 0
 last_amount_artist = 0
 last_amount_instruments = 0
 database_push_amount = 100
+firstId = 0
 
 queueLock = threading.Lock()
 linkList = []

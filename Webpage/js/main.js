@@ -5,12 +5,17 @@ function retrieveResults(search){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        // results = JSON.parse(this.responseText)
-        results = JSON.parse(this.responseText)
-        console.log(results)
-        resultsLength = results.length;
-        for (i = 0; i < results.length; ++i){
-            $('body').append(renderCard(results[i]))
+        if (this.responseText.trim() != ""){
+            results = JSON.parse(this.responseText)
+            console.log(results)
+            resultsLength = results.length;
+            var retDiv = $('<div></div>')
+            for (var i = 0; i < results.length; ++i){
+                retDiv.append(renderCard(results[i]))
+            }
+            $(".results").html(retDiv)
+        } else {
+            $(".results").html("Keine Ergebnisse gefunden!")
         }
       }
     };
@@ -33,24 +38,26 @@ function renderCard(obj) {
         return "";
     }
 
-    container = $("<a></a>").attr({id : obj.id, class : 'result-card', href: obj.Url})
+    var container = $("<a></a>").attr({id : obj.id, class : 'result-card', href: obj.Url})
     console.log(obj.Titel.trim())    
     if (String(obj.Titel).trim() == "") {
         titleString = GetFilename(obj.url)
     } else {
         titleString = obj.Titel
     }
-    title = $('<h3></h3>').html(titleString)
-    key = $('<div></div>').html(obj.Tonart)
-    tempo = $('<div></div>').html("BPM "+obj.Tempo)
-    time = new Date(parseInt(obj.Laenge) * 1000).toISOString().substr(11, 8)
-    timediv = $('<div></div>').html(time)
-    artist = $('<div></div>').html(obj.Kuenstler)
-    instruments = $("<div></div>")
-    for (x in obj.Instrumente){
-        instruments.append($('<div></div>').html(x))
+    var title = $('<h3></h3>').html(titleString)
+    var url = $('<div></div>').html(obj.Url).addClass("div-url")
+    var key = $('<div></div>').html(obj.Tonart)
+    var tempo = $('<div></div>').html("BPM "+obj.Tempo)
+    var time = new Date(parseInt(obj.Laenge) * 1000).toISOString().substr(11, 8)
+    var timediv = $('<div></div>').html(time)
+    var artist = $('<div></div>').html(obj.Kuenstler)
+    var instruments = $("<div></div>")
+    for (var i = 0; i < obj.Instrumente.length; i++){
+        instruments.append($('<div></div>').html(obj.Instrumente[i].anzahl + ' x ' + obj.Instrumente[i].name))
     }
-    container.append(title, key, tempo, timediv, artist, instruments)
+    
+    container.append(title, url, key, tempo, timediv, artist, instruments)
     console.log(container.html());
     return container
     
@@ -108,7 +115,7 @@ function setFilter(){
     //read selected Tonart
     selectKey = document.getElementById("selectkey").value;
 
-    for(var i = 0; i<Object.keys(results).length; i++){
+    for(var i = 0; i<results.length; i++){
         filter(results[i]);
     }
     filterConsoleLog();
@@ -147,7 +154,7 @@ function filter(obj){
 
 function deleteFilter(){ 
 
-    for (result in results){
-        document.getElementById(result.id).style.display = 'block';
+    for (i = 0; i < results.length; ++i){
+        document.getElementById(results[i].id).style.display = 'block';
     }
 }

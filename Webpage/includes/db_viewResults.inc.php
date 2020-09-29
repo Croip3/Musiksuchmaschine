@@ -12,20 +12,21 @@ class ViewResults extends SearchDB{
                     $instruments = array();
                     if (is_array($instrumentData) || is_object($instrumentData)){
                         foreach($instrumentData as $instr) {
-                            $instruments[] = $instr['name'];
+                            $instruments[] = $instr;
                         }
                     }
                     
                     $artist = $this->getArtist($data['id']);
                     if (is_array($artist) || is_object($artist)) {
-                        $artist = $artist[0]['name'];
+                        $artist = htmlentities($artist[0]['name']);
                     }
-                    $ret[] = array('id'=> $data['id'], 'Tempo'=> $data['Tempo'], 'Genre'=> $data['Genre'], 'Uploaddatum'=> $data['Uploaddatum'], 'Laenge'=> $data['Laenge'], 'Jahr'=> $data['Jahr'], 'Tonart'=> $data['Tonart'], 'Epoche'=> $data['Epoche'], 'Titel'=> $data['Titel'], 'Url' => $data['Url'], 'Kuenstler'=> $artist, 'Instrumente' => $instruments);
+                    $ret[] = array('id'=> $data['id'], 'Tempo'=> $data['Tempo'], 'Genre'=> $data['Genre'], 'Uploaddatum'=> $data['Uploaddatum'], 'Laenge'=> $data['Laenge'], 'Jahr'=> $data['Jahr'], 'Tonart'=> $data['Tonart'], 'Epoche'=> $data['Epoche'], 'Titel'=> htmlentities($data['Titel']), 'Url' => $data['Url'], 'Kuenstler'=> htmlentities($artist), 'Instrumente' => $instruments);
                 }
             }else{
                 echo "keine Daten gefunden";
             }
-        $this->data = json_encode($ret);
+            // var_dump($ret);
+            $this->data = json_encode($ret, JSON_UNESCAPED_UNICODE);
         }
 
         //filter Tempo
