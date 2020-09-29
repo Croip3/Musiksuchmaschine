@@ -42,7 +42,7 @@ function renderCard(obj) {
     }
     title = $('<h3></h3>').html(titleString)
     key = $('<div></div>').html(obj.Tonart)
-    tempo = $('<div></div>').html(obj.Tempo)
+    tempo = $('<div></div>').html("BPM "+obj.Tempo)
     time = new Date(parseInt(obj.Laenge) * 1000).toISOString().substr(11, 8)
     timediv = $('<div></div>').html(time)
     artist = $('<div></div>').html(obj.Kuenstler)
@@ -130,28 +130,24 @@ function filter(obj){
     if(selectKey != "alle"){
         if(obj.Tonart != selectKey){
             document.getElementById(obj.id).style.display = 'none';
-            console.log("key");
+            //console.log("key");
         }
     }
-    if(obj.Tempo < sliderTempomin || obj.Tempo > sliderTempomax){
+    if(parseInt(obj.Tempo) < parseInt(sliderTempomin) || parseInt(obj.Tempo) > parseInt(sliderTempomax)){
         document.getElementById(obj.id).style.display = 'none';
-        console.log("speed");
+        //console.log("speed");
     }
-    if((obj.Laenge < sliderLaengemin) || (obj.Laenge > sliderLaengemax)){
+    if((parseInt(obj.Laenge) < parseInt(sliderLaengemin)) || (parseInt(obj.Laenge) > parseInt(sliderLaengemax))){
         document.getElementById(obj.id).style.display = 'none';
-        console.log(obj.Laenge);
-        console.log(sliderLaengemin);
-        console.log(sliderLaengemax);
-        console.log("laenge");
-    }     
+        
+    }    
     
     //document.getElementById(obj.id).style.display = 'block';
 }
 
 function deleteFilter(){ 
 
-    for(i = 0; i < Object.keys(results).length; i++){
-        obj = results[i];
-        document.getElementById(obj.id).style.display = 'block';
+    for (result in results){
+        document.getElementById(result.id).style.display = 'block';
     }
 }
