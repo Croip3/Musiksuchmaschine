@@ -25,7 +25,9 @@
             <img alt="" id="glass" src="glass.png">
             <input type="text" id="search" name="search" spellcheck="false">
         </div>
-        <input type="submit" value="echo search array">   
+
+        <!-- echo sql query -->
+        <!--<input type="submit" value="echo search array">-->   
     
     </form>
 
@@ -76,24 +78,31 @@
                             <option value="epoch3">Moderne</option>
                         </select>
                     </div>
-                    <div class="key">
-                        <label for="key">Tonart</label><br>
-                        <select name="key" id="selectkey">
-                            <option value="key1">G-Dur/e-Moll</option>
-                            <option value="key2">C-Dur/a-Moll</option>
-                            <option value="key3">F-Dur/d-Moll</option>
-                        </select>
-                    </div>
+                    
                     <?php
                         class Filter extends ViewResults{
-                            public function filterTempo() {                    
-                    
+                            public function filterTonart(){                                
+                                //select Tonart
+                                echo '<div class="key">';
+                                    echo '<label for="key">Tonart</label><br>';
+                                    $getKeys = new ViewResults;
+                                    $keys = $getKeys->key();
+                                    echo '<select name="key" id="selectkey">';
+                                        foreach($keys as $key){
+                                            echo '<option value="'.$key["Tonart"].'">'.$key["Tonart"].'</option>';
+                                        }
+                                    echo '</select>';
+                                echo '</div>';
+                            }
+
+                            public function filterTempo() {                                                             
+                                //sliders minimum/maximum speed in BPM
                                 echo '<div class="tempo" >';
                                     echo "<p>Tempo</p>";
                                     echo "<label for='tempomin'>mindestens</label>";
                                     $tempo = new ViewResults;
                                     echo "<input type='range' name='tempomin' id='tempomin' min='".$tempo->minTempo()."' max='".$tempo->maxTempo()."' value='".$tempo->minTempo()."'>";
-                                    echo "<p><span id='tempominValue'></span> BPM</p>";
+                                    echo "<p><span id='tempominValue'></span> BPM</p><br>";
                                     echo "<label for='tempomax'>maximal</label>";
                                     echo "<input type='range' name='tempomax' id='tempomax' min='".$tempo->minTempo()."' max='".$tempo->maxTempo()."' value='".$tempo->maxTempo()."'>";
                                     echo "<p><span id='tempomaxValue'></span> BPM</p>";
@@ -101,15 +110,16 @@
                             }
                             
                             public function filterLaenge() {
+                                //slider minimum/maximum length in seconds
                                 echo'<div class="length">';
                                     echo'<p>Länge</p>';
                                     echo'<label for="lengmin">mindestens</label>';
                                     $laenge = new ViewResults;
                                     echo '<input type="range" name="lengmin" id="lengmin" min="'.$laenge->minLaenge().'" max="'.$laenge->maxLaenge().'" value="'.$laenge->minLaenge().'">';                   
-                                    echo '<p><span id="laengeminValue"></span> Minuten</p>';
+                                    echo '<p><span id="laengeminValue"></span> Sekunden</p><br>';
                                     echo '<label for="lengmax">maximal</label>';
                                     echo '<input type="range" name="lengmax" id="lengmax" min="'.$laenge->minLaenge().'" max="'.$laenge->maxLaenge().'" value="'.$laenge->maxLaenge().'">';
-                                    echo '<p><span id="laengemaxValue"></span> Minuten</p>';
+                                    echo '<p><span id="laengemaxValue"></span> Sekunden</p>';
                                 echo '</div>';
                             }
                         }
@@ -117,6 +127,7 @@
                         $filter = new Filter;
                         $filter->filterTempo();
                         $filter->filterLaenge();
+                        $filter->filterTonart();
                         ?>
                         
                     <div class="date">

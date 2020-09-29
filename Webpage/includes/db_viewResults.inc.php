@@ -51,5 +51,12 @@ class ViewResults extends SearchDB{
             $maxLaenge = $datas[count($datas)-1]['laenge'];
             return $maxLaenge;
         }
+
+        //filter Tonart
+        protected function key(){
+            $datas = $this->getKey();
+            $key = $datas;
+            return $key;
+        }   
     }
 ?>

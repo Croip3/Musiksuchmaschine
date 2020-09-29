@@ -62,5 +62,18 @@ class SearchDB extends DatabaseConnection{
                 return $data;                
             }
         }
+
+        protected function getKey(){
+            $sql = "SELECT DISTINCT Tonart FROM `musikstueck`";
+            $res = $this->connect()->query($sql);
+
+            $num = $res->num_rows;
+            if($num > 0){
+                while($row = $res->fetch_assoc()){
+                    $data[] = $row;
+                }
+                return $data;                
+            }
+        }
     }
 ?>

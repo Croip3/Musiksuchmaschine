@@ -64,10 +64,18 @@ var sliderTempomin;
 var sliderTempomax;
 var sliderLaengemin;
 var sliderLaengemax;
+var selectKey;
 
 
 
 function showFilterSliderValue(){
+    //print start values for all sliders
+    document.getElementById("tempominValue").innerHTML = document.getElementById("tempomin").value;
+    document.getElementById("tempomaxValue").innerHTML = document.getElementById("tempomax").value;
+    document.getElementById("laengeminValue").innerHTML = document.getElementById("lengmin").value;
+    document.getElementById("laengemaxValue").innerHTML =  document.getElementById("lengmax").value;
+
+    //update printed slider Values when changed
     document.getElementById("tempomin").oninput = function() {
         document.getElementById("tempominValue").innerHTML = this.value;
     }
@@ -89,7 +97,10 @@ function setFilter(){
 
     //read Länge slider
     sliderLaengemin = document.getElementById("lengmin").value;
-    sliderLaengemax = document.getElementById("lengmax").value;    
+    sliderLaengemax = document.getElementById("lengmax").value;
+    
+    //read selected Tonart
+    selectKey = document.getElementById("selectkey").value;
 
     filterResults();
 }
@@ -100,4 +111,6 @@ function filterResults(){
 
     console.log("minLänge: " + sliderLaengemin);
     console.log("maxLänge: " + sliderLaengemax);
+
+    console.log("Tonart: " + selectKey);
 }
