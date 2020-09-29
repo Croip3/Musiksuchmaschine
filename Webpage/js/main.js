@@ -1,4 +1,6 @@
 var results
+var resultsLength
+
 function retrieveResults(search){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
@@ -6,6 +8,7 @@ function retrieveResults(search){
         // results = JSON.parse(this.responseText)
         results = JSON.parse(this.responseText)
         console.log(results)
+        resultsLength = results.length;
         for (i = 0; i < results.length; ++i){
             $('body').append(renderCard(results[i]))
         }
@@ -15,7 +18,9 @@ function retrieveResults(search){
     xmlhttp.send();
 }
 
+
 function renderCard(obj) {
+    console.log(obj.Tonart);
     function GetFilename(url){
         if (url)
         {
@@ -62,15 +67,91 @@ function search() {
 
 var sliderTempomin;
 var sliderTempomax;
+var sliderLaengemin;
+var sliderLaengemax;
+var selectKey;
+
+
+
+function showFilterSliderValue(){
+    //print start values for all sliders
+    document.getElementById("tempominValue").innerHTML = document.getElementById("tempomin").value;
+    document.getElementById("tempomaxValue").innerHTML = document.getElementById("tempomax").value;
+    document.getElementById("laengeminValue").innerHTML = document.getElementById("lengmin").value;
+    document.getElementById("laengemaxValue").innerHTML =  document.getElementById("lengmax").value;
+
+    //update printed slider Values when changed
+    document.getElementById("tempomin").oninput = function() {
+        document.getElementById("tempominValue").innerHTML = this.value;
+    }
+    document.getElementById("tempomax").oninput = function() {
+        document.getElementById("tempomaxValue").innerHTML = this.value;
+    }
+    document.getElementById("lengmin").oninput = function() {
+        document.getElementById("laengeminValue").innerHTML = this.value;
+    }
+    document.getElementById("lengmax").oninput = function() {
+        document.getElementById("laengemaxValue").innerHTML = this.value;
+    }
+}
 
 function setFilter(){
+
+    //read Tempo slider
     sliderTempomin = document.getElementById("tempomin").value;
     sliderTempomax = document.getElementById("tempomax").value;
 
-    filterResults();
+    //read Länge slider
+    sliderLaengemin = document.getElementById("lengmin").value;
+    sliderLaengemax = document.getElementById("lengmax").value;
+    
+    //read selected Tonart
+    selectKey = document.getElementById("selectkey").value;
+
+    for(var i = 0; i<Object.keys(results).length; i++){
+        filter(results[i]);
+    }
+    filterConsoleLog();
 }
 
-function filterResults(){
-    console.log(sliderTempomin);
-    console.log(sliderTempomax);
+function filterConsoleLog(){
+    console.log("minTempo: " + sliderTempomin);
+    console.log("maxTempo: " + sliderTempomax);
+
+    console.log("minLänge: " + sliderLaengemin);
+    console.log("maxLänge: " + sliderLaengemax);
+
+    console.log("Tonart: " + selectKey);    
+}
+
+function filter(obj){
+    document.getElementById(obj.id).style.display = 'block';
+    //deleteFilter();
+    if(selectKey != "alle"){
+        if(obj.Tonart != selectKey){
+            document.getElementById(obj.id).style.display = 'none';
+            console.log("key");
+        }
+    }
+    if(obj.Tempo < sliderTempomin || obj.Tempo > sliderTempomax){
+        document.getElementById(obj.id).style.display = 'none';
+        console.log("speed");
+    }
+    if((obj.Laenge < sliderLaengemin) || (obj.Laenge > sliderLaengemax)){
+        document.getElementById(obj.id).style.display = 'none';
+        console.log(obj.Laenge);
+        console.log(sliderLaengemin);
+        console.log(sliderLaengemax);
+        console.log("laenge");
+    }     
+    
+    //document.getElementById(obj.id).style.display = 'block';
+}
+
+function deleteFilter(){ 
+
+    for(i = 0; i < Object.keys(results).length; i++){
+        obj = results[i];
+        document.getElementById(obj.id).style.display = 'block';
+    }
 }

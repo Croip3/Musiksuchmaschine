@@ -28,6 +28,7 @@ class ViewResults extends SearchDB{
         $this->data = json_encode($ret);
         }
 
+        //filter Tempo
         public function minTempo(){
             $datas = $this->getTempo();
             $minTempo = $datas[0]['Tempo'];
@@ -38,5 +39,24 @@ class ViewResults extends SearchDB{
             $maxTempo = $datas[count($datas)-1]['Tempo'];
             return $maxTempo;
         }
+
+        //filter laenge
+        public function minLaenge(){
+            $datas = $this->getLaenge();
+            $minLaenge = $datas[0]['laenge'];
+            return $minLaenge;
+        }
+        public function maxLaenge(){
+            $datas = $this->getLaenge();
+            $maxLaenge = $datas[count($datas)-1]['laenge'];
+            return $maxLaenge;
+        }
+
+        //filter Tonart
+        protected function key(){
+            $datas = $this->getKey();
+            $key = $datas;
+            return $key;
+        }   
     }
 ?>
