@@ -13,4 +13,4 @@ https://mido.readthedocs.io/en/latest/
 Xml & mxml via music21 
 http://web.mit.edu/music21/doc/about/what.html
 
-Wenn es Fragen gib: Johann.bartel@stud.htwk-leipzig.de
+Wenn es Fragen gib: johann.bartel@stud.htwk-leipzig.de
